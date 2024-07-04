@@ -1,0 +1,166 @@
+{% extends "admin_side/base.html" %}
+{% load static %}
+{% block title %} <title>Category Management</title>{% endblock title %}
+{% block content  %}
+<section class="content-main">
+    <div class="content-header">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="content-title card-title mb-0">Brand Management</h2>
+
+            
+        </div>
+        <div>
+            <a href="{% url 'brand:create-brand' %}" class="btn btn-primary"><i class="text-muted material-icons md-post_add"></i>Create Brand</a>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <header class="card-header">
+            <div class="row gx-3">
+                <div class="col-lg-4 col-md-6 me-auto">
+                    <input type="text" placeholder="Search..." class="form-control" />
+                </div>
+                <div class="col-lg-2 col-md-3 col-6">
+                    <select class="form-select">
+                        <option>Status</option>
+                        <option>Active</option>
+                        <option>Disabled</option>
+                        <option>Show all</option>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-3 col-6">
+                    <select class="form-select">
+                        <option>Show 20</option>
+                        <option>Show 30</option>
+                        <option>Show 40</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+        <!-- card-header end// -->
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Brand Name</th>
+                            <th>Description</th>
+                            <th>Brand Image</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for brand in brand %}
+                        <tr>
+                            <td>{{ brand.id }}</td>
+                            <td>{{ brand.brand_name }}</td>
+                            <td>{{ brand.description }}</td>
+                            <td>
+                                {% if brand.brand_image %}
+                                    <img src="{{ brand.brand_image.url }}" alt="{{ brand.brand_name }}" class="img-thumbnail">
+                                {% else %}
+                                    No image available
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge dark-mode-badge-{{ brand.status|yesno:'success,danger' }}">
+                                    {{ brand.status|yesno:"Active,Inactive" }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex">
+                                    <a href="{% url 'brand:edit-brand' brand.id %}" class="btn dark-mode-btn-warning dark-mode-btn-sm mr-2">Edit</a>
+                                    <form method="post" action="{% url 'brand:brand-status' brand.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn dark-mode-btn-{% if brand.status %}danger{% else %}success{% endif %} dark-mode-btn-sm btn-status" onclick="confirmStatusChange(event)">Status</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>{{ product.id }}</td>
+                            <td>{{ product.product_name }}</td>
+                            <td>{{ product.product_description }}</td>
+                            <td>
+                                {% if product.product_category %}
+                                    {{ product.product_category.category_name }}
+                                {% else %}
+                                    No category
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if product.product_brand %}
+                                    {{ product.product_brand.brand_name }}
+                                {% else %}
+                                    No brand
+                                {% endif %}
+                            </td>
+                            <td>{{ product.price }}</td>
+                            <td>{{ product.offer_price }}</td>
+                            <td>{{ product.percentage_discount }}%</td>
+                            <td>
+                                <span class="badge badge-{{ product.is_active|yesno:'success,danger' }}">
+                                    {{ product.is_active|yesno:"Active,Inactive" }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'product:add-images' product.id %}" class="btn btn-info btn-sm">Add Images</a>
+                            </td>
+                            <td>
+                                <a href="{% url 'product:add-variant' product.id %}" class="btn btn-secondary btn-sm">Variant</a>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <form method="post" action="{% url 'product:product-status' product.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-{% if product.is_active %}danger{% else %}success{% endif %} btn-sm" onclick="confirmStatusChange(event)">Status</button>
+                                    </form>
+                                    <a href="{% url 'product:edit-product' product.id %}" class="btn btn-warning btn-sm">Edit</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div> <!-- table-responsive//end -->
+        </div>
+        <!-- card-body end// -->
+    </div>
+    <div class="pagination-area mt-30 mb-50">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-start">
+                <li class="page-item active"><a class="page-link" href="#">01</a></li>
+                <li class="page-item"><a class="page-link" href="#">02</a></li>
+                <li class="page-item"><a class="page-link" href="#">03</a></li>
+                <li class="page-item"><a class="page-link dot" href="#">...</a></li>
+                <li class="page-item"><a class="page-link" href="#">16</a></li>
+                <li class="page-item"><a class="page-link" href="#"><i class="material-icons md-chevron_right"></i></a></li>
+            </ul>
+        </nav>
+    </div>
+</section> 
+
+<script>
+    function confirmStatusChange(event) {
+        event.preventDefault();
+        const form = event.target.closest('form');
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You are about to change the status.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, do it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    }
+</script>
+{% endblock content  %}

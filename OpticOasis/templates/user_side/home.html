@@ -1,0 +1,169 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpticOasis - Your Online Specs Store</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'user_side/css/home.css' %}">
+    <!-- Include alertify CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/alertify.js/1.13.1/css/alertify.min.css"/>
+    <!-- Include alertify theme CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/alertify.js/1.13.1/css/themes/default.min.css"/>
+
+    <style>
+        .header {
+            width: 100%;
+            height: 70px;
+            background: white;
+            top: 0;
+            left: 0;
+            box-shadow: 0px 2px 40px 0px rgba(0, 0, 0, 0.091);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #cacaca;
+            font-weight: 100;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+          }
+    </style>
+</head>
+<body>
+    <div class='header'>
+        <div class='title'>
+          <h4>OPTIC OASIS</h4>
+        </div>
+    </div>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Sunglasses</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Eyeglasses</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Screenglasses</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Contact</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fas fa-shopping-cart"></i></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fas fa-heart"></i></a>
+                </li>
+                {% if user.is_authenticated %} 
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}"><i class="fas fa-user">Logout</i></a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}"><i class="fas fa-user">Login</i></a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+    {% if categorys %}
+    <div class="container my-5">
+        <h2 class="text-center mb-4">Category</h2>
+        <div class="row">
+            {% for category in categorys %}
+            <div class="col-md-4">
+                <div class="card category">
+                    <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Women">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ category.category_name }}</h5>
+                        <p class="card-text">{{ category.slug }}</p>
+                    </div>
+                </div>
+            </div> 
+            {% endfor %}           
+        </div>
+    </div>
+    {% endif %}
+    <h2 class="text-center mb-4">Our Brands</h2>
+    {% if brands %}
+    {% for brand in brands %}
+    <div class="banner">
+        <img src="{{ brand.brand_image.url }}" alt="Banner Image">
+    </div>
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card category">
+                    <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Women">
+                    <div class="card-body">
+                        <h5 class="card-title">Women</h5>
+                        <p class="card-text">Discover styles for women.</p>
+                    </div>
+                </div>
+            </div>        
+            <div class="col-md-4">
+                <div class="card category">
+                    <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Women">
+                    <div class="card-body">
+                        <h5 class="card-title">Women</h5>
+                        <p class="card-text">Discover styles for women.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card category">
+                    <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Kids">
+                    <div class="card-body">
+                        <h5 class="card-title">Kids</h5>
+                        <p class="card-text">Find specs for kids.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% endfor %}
+    {% endif %}  
+    <footer class="footer bg-dark text-white text-center py-3">
+        <p>&copy; 2024 OpticOasis. All rights reserved.</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <!-- Include alertify JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alertify.js/1.13.1/alertify.min.js"></script>
+
+    {% if messages %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                {% for message in messages %}
+                    Swal.fire({
+                        icon: '{{ message.tags }}',
+                        title: '{{ message }}',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                {% endfor %}
+            });
+        </script>
+    {% endif %}
+</body>
+</html>
+

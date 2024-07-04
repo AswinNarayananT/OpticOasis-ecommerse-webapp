@@ -1,0 +1,57 @@
+{% extends "admin_side/base.html" %}
+{% load static %}
+{% block title %}<title>Edit Product</title>{% endblock title %}
+{% block content %}
+<div class="container mt-5">
+    <h1>Edit Product</h1>
+    <form method="post" enctype="multipart/form-data" style="padding: 20px;">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="product_name">Product Name</label>
+            <input type="text" class="form-control" id="product_name" name="product_name" value="{{ product.product_name }}" required>
+        </div>
+        <div class="form-group">
+            <label for="product_description">Product Description</label>
+            <textarea class="form-control" id="product_description" name="product_description" rows="5" required>{{ product.product_description }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="product_category">Category</label>
+            <select class="form-control" id="product_category" name="product_category">
+                <option value="">Select Category</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category.id == product.product_category.id %}selected{% endif %}>{{ category.category_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="product_brand">Brand</label>
+            <select class="form-control" id="product_brand" name="product_brand">
+                <option value="">Select Brand</option>
+                {% for brand in brands %}
+                    <option value="{{ brand.id }}" {% if brand.id == product.product_brand.id %}selected{% endif %}>{{ brand.brand_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="price">Price</label>
+            <input type="number" step="0.01" class="form-control" id="price" name="price" value="{{ product.price }}" required>
+        </div>
+        <div class="form-group">
+            <label for="offer_price">Offer Price</label>
+            <input type="number" step="0.01" class="form-control" id="offer_price" name="offer_price" value="{{ product.offer_price }}" required>
+        </div>
+        <div class="form-group">
+            <label for="thumbnail">Thumbnail</label>
+            <input type="file" class="form-control-file" id="thumbnail" name="thumbnail">
+            {% if product.thumbnail %}
+                <img src="{{ product.thumbnail.url }}" alt="{{ product.product_name }}" class="img-thumbnail" style="height: 100px;">
+            {% endif %}
+        </div>
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {% if product.is_active %}checked{% endif %}>
+            <label class="form-check-label" for="is_active">Is Active</label>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Update Product</button>
+    </form>
+</div>
+{% endblock content %}
