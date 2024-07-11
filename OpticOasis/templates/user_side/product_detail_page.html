@@ -1,0 +1,55 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ product.product_name }} Detail</title>
+    <link rel="stylesheet" href="{% static 'path/to/your/css/styles.css' %}">
+</head>
+<body>
+    <div class="product-detail">
+        <h1>{{ product.product_name }}</h1>
+        <div class="product-image">
+            {% if variant_images %}
+                {% for image in variant_images %}
+                    <img src="{{ image.images.url }}" alt="{{ product.product_name }}">
+                {% endfor %}
+            {% elif product.thumbnail %}
+                <img src="{{ product.thumbnail.url }}" alt="{{ product.product_name }}">
+            {% else %}
+                <img src="{% static 'path/to/default/image.jpg' %}" alt="{{ product.product_name }}">
+            {% endif %}
+        </div>
+        <div class="product-details">
+            <p>Description: {{ product.product_description }}</p>
+            <p>Offer Price: ₹{{ product.offer_price }}</p>
+            <p>Regular Price: ₹{{ product.price }}</p>
+            <p>Discount: {{ product.percentage_discount }}%</p>
+        </div>
+        <div class="other-variants">
+            <h3>Other Variants:</h3>
+            <ul>
+                {% for variant in other_variants %}
+                    <li>
+                        <a href="#">{{ variant.colour_name }}</a>
+                        <ul>
+                            {% for image in other_variant_images %}
+                                {% if image.product_variant_id == variant.id %}
+                                    <li>
+                                        <img src="{{ image.images.url }}" alt="{{ variant.colour_name }} image">
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </li>
+                {% empty %}
+                    <li>No other variants available</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <script src="{% static 'path/to/your/js/scripts.js' %}"></script>
+</body>
+</html>

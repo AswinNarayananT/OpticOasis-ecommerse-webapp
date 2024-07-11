@@ -53,11 +53,11 @@
                             <td>{{ user.first_name }}</td>
                             <td>{{ user.last_name }}</td>
                             <td>
-                                {% if user.is_blocked %}
+                                {% comment %} {% if user.is_blocked %}
                                 <a href="#" class="btn btn-success btn-sm" onclick="confirmAction('{% url 'user_unblock' user.id %}', 'Are you sure you want to unblock this user?')">Unblock</a>
                                 {% else %}
                                 <a href="#" class="btn btn-warning btn-sm" onclick="confirmAction('{% url 'user_block' user.id %}', 'Are you sure you want to block this user?')">Block</a>
-                                {% endif %}
+                                {% endif %} {% endcomment %}
                                 {% if user.is_active %}
                                 <a href="#" class="btn btn-danger btn-sm" onclick="confirmAction('{% url 'user_delete' user.id %}', 'Are you sure you want to delete this user?')">Delete</a> 
                                 {% else %}

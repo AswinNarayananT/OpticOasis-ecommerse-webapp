@@ -26,7 +26,8 @@ User = get_user_model()
 def home_page(request):
     brands =Brand.objects.all()
     categorys=Category.objects.all()
-    return render(request,'user_side/home.html',{'brands':brands,'categorys':categorys})
+    products =Products.objects.filter(is_active=True)
+    return render(request,'user_side/index-3.html',{'brands':brands,'categorys':categorys,'products':products})
 
 def register(request):
     if request.method == 'POST':
@@ -151,7 +152,6 @@ def logout_view(request):
 
 
 def demo(request):
-    brands =Brand.objects.all()
-    categorys=Category.objects.all()
-    return render(request,'user_side/demo.html', {'brands':brands,'categorys':categorys})
+    
+    return render(request,'user_side/shop-product-left.html')
         

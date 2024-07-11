@@ -1,7 +1,10 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import Products, Category, Brand ,Product_images ,Product_Variant,Product_variant_images
+from .models import Products, Category, Brand ,Product_images ,Product_Variant,Product_variant_images 
 from utils.decorators import admin_required
 from django.http import HttpResponse
+from django.utils import timezone
+from django.http import JsonResponse
+from django.db.models import Prefetch
 
 
 
@@ -28,6 +31,7 @@ def create_product(request):
         price = request.POST.get('price')
         offer_price = request.POST.get('offer_price')
         is_active = request.POST.get('is_active') == 'on'
+        thumbnail = request.FILES.get('thumbnail')
 
         product_category = Category.objects.get(id=product_category_id) if product_category_id else None
         product_brand = Brand.objects.get(id=product_brand_id) if product_brand_id else None
@@ -39,7 +43,10 @@ def create_product(request):
             product_brand=product_brand,
             price=price,
             offer_price=offer_price,
-            is_active=is_active
+            thumbnail=thumbnail,
+            is_active=is_active,
+            created_at=timezone.now(),
+            updated_at=timezone.now()
         )
         product.save()
 
@@ -67,8 +74,9 @@ def edit_product(request, product_id):
         product.product_category = Category.objects.get(id=product_category_id) if product_category_id else None
         product.product_brand = Brand.objects.get(id=product_brand_id) if product_brand_id else None
 
+        product.updated_at = timezone.now()  # Update the updated_at timestamp
         product.save()
-        return redirect('product:product-detail',product_id=product_id)
+        return redirect('product:product-detail', product_id=product_id)
 
     categories = Category.objects.all()
     brands = Brand.objects.all()
@@ -137,7 +145,7 @@ def add_variant_image(request, product_variant_id):
         if images:
             for image in images:
                 Product_variant_images.objects.create(product_variant=product_variant, images=image)
-            return HttpResponse("Images uploaded successfully")
+            return redirect('product:variant-detail', product_id=product_variant.product.id)
         
         return HttpResponse("Invalid data", status=400)
 
@@ -157,6 +165,73 @@ def variant_detail(request, product_id):
     }
     return render(request, 'admin_side/variant_detail.html', context)
 
+@admin_required
+def variant_status(request, variant_id):
+    variant = get_object_or_404(Product_Variant, id=variant_id)
+    variant.variant_status = not variant.variant_status
+    variant.save()
+    return redirect('product:variant-detail', variant.product.id)
 
 
 
+@admin_required
+def edit_variant(request, variant_id):
+    variant = get_object_or_404(Product_Variant, id=variant_id)
+    variant_images = Product_variant_images.objects.filter(product_variant=variant)
+    
+    if request.method == 'POST':
+        variant.size = request.POST.get('variant_size')
+        variant.colour_name = request.POST.get('colour_name')
+        variant.colour_code = request.POST.get('colour_code')
+        variant.variant_stock = request.POST.get('variant_stock')
+        variant.variant_status = request.POST.get('variant_status') == 'on'
+
+        if request.FILES.get('images'):
+            Product_variant_images.objects.create(
+                product_variant=variant,
+                images=request.FILES.get('images')
+            )
+        
+        variant.save()
+        return redirect('product:variant-detail', variant.product.id)
+    
+    return render(request, 'admin_side/edit_variant.html', {'variant': variant,'variant_images': variant_images,})
+
+
+
+def product_detail_page(request, product_id):
+    product = get_object_or_404(Products, id=product_id)
+    variants = Product_Variant.objects.filter(product=product).prefetch_related('product_variant_images_set')
+
+    selected_variant = variants.first()  # Assuming the first variant is the default one
+    variant_images = Product_variant_images.objects.none()
+    if selected_variant:
+        variant_images = selected_variant.product_variant_images_set.all()
+
+    # Move the selected variant to the beginning of the list
+    if selected_variant:
+        variants = list(variants)
+        variants.remove(selected_variant)
+        variants.insert(0, selected_variant)
+
+    # Prepare image URLs for each variant
+    for variant in variants:
+        variant.image_urls = ','.join([image.images.url for image in variant.product_variant_images_set.all()])
+
+    return render(request, 'user_side/product_details2.html', {
+        'product': product,
+        'variants': variants,
+        'selected_variant': selected_variant,
+        'variant_images': variant_images,
+    })
+
+
+def get_variant_sizes(request):
+    variant_id = request.GET.get('variant_id')
+    variant = Product_Variant.objects.filter(id=variant_id).first()
+    
+    if variant:
+        sizes = list(Product_Variant.objects.filter(product=variant.product, colour_code=variant.colour_code).values_list('size', flat=True))
+        return JsonResponse({'sizes': sizes})
+    else:
+        return JsonResponse({'sizes': []}, status=404)

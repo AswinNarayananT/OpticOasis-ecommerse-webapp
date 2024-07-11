@@ -1,6 +1,7 @@
 from django.db import models
 from category.models import Category
 from brand.models import Brand
+from accounts.models import User
 # Create your models here.
 
 
@@ -20,6 +21,12 @@ class Products(models.Model):
 
     def percentage_discount(self):
         return int(((self.price - self.offer_price) / self.price) * 100)
+    
+    def average_rating(self):
+        reviews = self.reviews.all()
+        if reviews:
+            return sum(review.rating for review in reviews) / reviews.count()
+        return 0
 
     def __str__(self):
         return f"{self.product_brand.brand_name}-{self.product_name}"
@@ -32,6 +39,7 @@ class Product_Variant(models.Model):
     variant_stock = models.PositiveIntegerField(null=False,default=0)
     variant_status = models.BooleanField(default=True)
     colour_code = models.CharField(null=False)
+
 
 
 class Product_images(models.Model):
@@ -51,7 +59,17 @@ class Product_variant_images(models.Model):
 
     def __str__(self):
         return f"Image for {self.product_variant.product.product_name} - {self.product_variant.colour_name}"
+    
 
+# class Review(models.Model):
+#       user = models.ForeignKey('User', on_delete=models.CASCADE)
+#       product = models.ForeignKey('Products', on_delete=models.CASCADE, related_name='reviews')
+#       rating = models.IntegerField()
+#       comment = models.CharField(max_length=50)
+      
+#       created_at = models.DateTimeField(auto_now_add=True)    
+#       def __str__(self):
+#           return str(self.user)
 
 
 
