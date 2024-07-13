@@ -18,5 +18,6 @@ urlpatterns = [
     path('variant-status/<int:variant_id>/',views.variant_status, name='variant-status'),
     path('product/<int:product_id>/', views.product_detail_page, name='product-detail-page'),
     path('get-variant-sizes/', views.get_variant_sizes, name='get-variant-sizes'),
+    path('add_review/<int:product_id>/',views.add_review, name='add-review'),
     
 ]

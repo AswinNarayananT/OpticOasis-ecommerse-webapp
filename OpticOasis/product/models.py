@@ -60,16 +60,16 @@ class Product_variant_images(models.Model):
     def __str__(self):
         return f"Image for {self.product_variant.product.product_name} - {self.product_variant.colour_name}"
     
-
-# class Review(models.Model):
-#       user = models.ForeignKey('User', on_delete=models.CASCADE)
-#       product = models.ForeignKey('Products', on_delete=models.CASCADE, related_name='reviews')
-#       rating = models.IntegerField()
-#       comment = models.CharField(max_length=50)
-      
-#       created_at = models.DateTimeField(auto_now_add=True)    
-#       def __str__(self):
-#           return str(self.user)
+class Review(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Products, related_name='reviews', on_delete=models.CASCADE)
+    rating = models.IntegerField()
+    comment = models.CharField( max_length=50)
+    
+    created_at = models.DateTimeField(auto_now_add=True)    
+    
+    def str(self):
+        return f'{self.user} - {self.product}'
 
 
 

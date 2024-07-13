@@ -207,9 +207,10 @@
                                 <!--Comments-->
                                 <div class="comments-area style-2">
                                     <div class="row">
-                                        <div class="col-lg-8">
-                                            <h4 class="mb-30">Customer questions & answers</h4>
-                                            {% for review in reviews %}
+                                        <div class="col-lg-8 d-flex">
+                                            <div >
+                                                <h4 class="mb-30">Customer questions & answers</h4>
+                                                {% for review in reviews %}
                                                 {% if review %}
                                                 <div class="comment-list">
                                                     <div class="single-comment justify-content-between d-flex">
@@ -238,7 +239,7 @@
                                                             </div>
                                                             <div>
                                                                 <div style="margin-left:100px; width:50px;" >
-                                                                    <form action="{% url 'product:review_delete' review.id %}" method="post">
+                                                                    <form action="" method="post">
                                                                         {% csrf_token %}
                                                                         <button class="btn btn-danger " type="submit">Delete</button>
                                                                     </form>
@@ -248,66 +249,60 @@
                                                     </div>
                                                     {% endif %}
                                                     {% endfor %}
-                                        </div>
-                                        <div class="col-lg-4">
-                                            <h4 class="mb-30">Customer reviews</h4>
-                                            <div class="d-flex mb-30">
-                                                <div class="star-rating-display" data-rating="{{ products.get_average_rating }}">
-                                                    <span class="star">&#9733;</span>
-                                                    <span class="star">&#9733;</span>
-                                                    <span class="star">&#9733;</span>
-                                                    <span class="star">&#9733;</span>
-                                                    <span class="star">&#9733;</span>
                                                 </div>
-                                            
-                                            <h6></h6>
+                                                    <div>
+                                                        <div class="col-lg-4">
+                                                            <h4 class="mb-30">Customer reviews</h4>
+                                                            <div class="d-flex mb-30">
+                                                                <div class="star-rating-display" data-rating="{{ products.get_average_rating }}">
+                                                                    <span class="star">&#9733;</span>
+                                                                    <span class="star">&#9733;</span>
+                                                                    <span class="star">&#9733;</span>
+                                                                    <span class="star">&#9733;</span>
+                                                                    <span class="star">&#9733;</span>
+                                                                </div>
+                                                            
+                                                            <h6></h6>
+                                                        </div>
+                                                        <div>
+                                                            <div class="progress">
+                                                                <span>5 star</span>
+                                                                <div class="progress-bar" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
+                                                            </div>
+                                                            <div class="progress">
+                                                                <span>4 star</span>
+                                                                <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+                                                            </div>
+                                                            <div class="progress">
+                                                                <span>3 star</span>
+                                                                <div class="progress-bar" role="progressbar" style="width: 45%;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">45%</div>
+                                                            </div>
+                                                            <div class="progress">
+                                                                <span>2 star</span>
+                                                                <div class="progress-bar" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100">65%</div>
+                                                            </div>
+                                                            <div class="progress mb-30">
+                                                                <span>1 star</span>
+                                                                <div class="progress-bar" role="progressbar" style="width: 85%;" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">85%</div>
+                                                            </div>
+                                                            <a href="#" class="font-xs text-muted">How are ratings calculated?</a>
+                                                        </div>
+                                            </div>
                                         </div>
-                                            <div class="progress">
-                                                <span>5 star</span>
-                                                <div class="progress-bar" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
-                                            </div>
-                                            <div class="progress">
-                                                <span>4 star</span>
-                                                <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
-                                            </div>
-                                            <div class="progress">
-                                                <span>3 star</span>
-                                                <div class="progress-bar" role="progressbar" style="width: 45%;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">45%</div>
-                                            </div>
-                                            <div class="progress">
-                                                <span>2 star</span>
-                                                <div class="progress-bar" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100">65%</div>
-                                            </div>
-                                            <div class="progress mb-30">
-                                                <span>1 star</span>
-                                                <div class="progress-bar" role="progressbar" style="width: 85%;" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">85%</div>
-                                            </div>
-                                            <a href="#" class="font-xs text-muted">How are ratings calculated?</a>
-                                        </div>
+                                        
                                     </div>
                                 </div>
                                 <!--comment form-->
                                 <div class="comment-form">
                                     <h4 class="mb-15">Add a review</h4>
-                                    <div class="d-flex mb-30">
-                                        <div class="star-rating-display" data-rating="{{ products.get_average_rating }}">
-                                            <span class="star">&#9733;</span>
-                                            <span class="star">&#9733;</span>
-                                            <span class="star">&#9733;</span>
-                                            <span class="star">&#9733;</span>
-                                            <span class="star">&#9733;</span>
-                                        </div>
-                                    
-                                    <h6></h6>
-                                </div>
                                     <div class="row">
                                         <div class="col-lg-8 col-md-12">
-                                            <form method="post" class="form-contact comment_form" action="" id="commentForm">
+                                            <form method="post" class="form-contact comment_form" action="{% url 'product:add-review' product.id %}" id="commentForm">
                                                 {% csrf_token %}
                                                 <div class="row">
                                                     <div class="col-12">
-                                                        <div class="form-group">    
-                                                            <textarea class="form-control w-100" name="comment" id="comment" cols="30" rows="9" placeholder="Write Comment"></textarea>
+                                                        <div class="form-group">
+                                                            <textarea class="form-control w-100" name="comment" id="comment" cols="30" rows="9" placeholder="Write Comment" required></textarea>
                                                         </div>
                                                     </div>
                                                     <div>
@@ -318,8 +313,7 @@
                                                             <span class="star" data-value="4">&#9733;</span>
                                                             <span class="star" data-value="5">&#9733;</span>
                                                         </div>
-                                                        <input type="hidden" id="rating" name="rating" value="0">
-                                                        
+                                                        <input type="hidden" id="rating" name="rating" value="0" required>
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
@@ -329,7 +323,6 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
                         </div>
                         <div class="row mt-60">
                             <div class="col-12">
@@ -599,58 +592,24 @@ $(document).ready(function(){
 </script>
     
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         const stars = document.querySelectorAll('.star-rating .star');
         const ratingInput = document.getElementById('rating');
-    
-        function fillStars(upToIndex, className) {
-            stars.forEach((star, index) => {
-                if (index <= upToIndex) {
-                    star.classList.add(className);
-                } else {
-                    star.classList.remove(className);
-                }
-            });
-        }
-    
-        function clearHoverStars() {
-            stars.forEach(star => star.classList.remove('hovered'));
-        }
-    
-        stars.forEach((star, index) => {
-            // Handle click event
-            star.addEventListener('click', function () {
-                ratingInput.value = index + 1;
-                fillStars(index, 'selected');
-            });
-    
-            // Handle mouseover event
-            star.addEventListener('mouseover', function () {
-                clearHoverStars();
-                fillStars(index, 'hovered');
-            });
-    
-            // Handle mouseout event
-            star.addEventListener('mouseout', function () {
-                clearHoverStars();
-            });
-        });
-    
-        // Initial rendering based on data-rating attribute for static star displays
-        const starContainers = document.querySelectorAll('.star-rating-display');
-        starContainers.forEach(container => {
-            const rating = parseInt(container.getAttribute('data-rating'));
-            const stars = container.querySelectorAll('.star');
-    
-            stars.forEach((star, index) => {
-                if (index < rating) {
-                    star.classList.add('filled');
-                }
+        
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const value = this.getAttribute('data-value');
+                ratingInput.value = value;
+                
+                stars.forEach(s => {
+                    if (s.getAttribute('data-value') <= value) {
+                        s.classList.add('selected');
+                    } else {
+                        s.classList.remove('selected');
+                    }
+                });
             });
         });
     });
-    
-
-    //cart 
 </script>
 {% endblock %}

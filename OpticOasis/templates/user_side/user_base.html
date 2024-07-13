@@ -233,7 +233,7 @@
             <div class="container">
                 <div class="header-wrap">
                     <div class="">
-                        <a href="index.html">OPTIC OASIS</a>
+                        <a href="{% url 'home_page' %}">OPTIC OASIS</a>
                     </div>
                     <div class="header-right">
                         <div class="">
@@ -266,12 +266,15 @@
                                         2
                                       </span>
                                     </a>
-                                    <a href="#" class="me-3 position-relative">
+                                    <a href="{% url 'cart:cart-view' %}" class="me-3 position-relative">
                                       <i class="bi bi-cart fs-4"></i>
                                       <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
                                         3
                                       </span>
-                                    </a>
+                                    </a>                                  
+                                    <a href="{% url 'userpanel:user-profile' %}" class="me-3 position-relative">
+                                        <i class="bi bi-person-circle fs-4"></i>
+                                    </a>                                
                                     <a href="" class="me-3 position-relative" title="Logout">
                                       <i class="bi bi-box-arrow-right fs-4"></i>
                                     </a>

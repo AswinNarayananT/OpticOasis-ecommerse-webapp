@@ -4,7 +4,11 @@ from utils.decorators import admin_required
 from django.http import HttpResponse
 from django.utils import timezone
 from django.http import JsonResponse
-from django.db.models import Prefetch
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from .models import Products, Review
+from django.db.models import Avg
+
 
 
 
@@ -218,12 +222,20 @@ def product_detail_page(request, product_id):
     for variant in variants:
         variant.image_urls = ','.join([image.images.url for image in variant.product_variant_images_set.all()])
 
-    return render(request, 'user_side/product_details2.html', {
+    # Fetch reviews and calculate the average rating
+    reviews = Review.objects.filter(product=product).order_by('-created_at')
+    average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+
+    context = {
         'product': product,
         'variants': variants,
         'selected_variant': selected_variant,
         'variant_images': variant_images,
-    })
+        'reviews': reviews,
+        'average_rating': average_rating,
+    }
+
+    return render(request, 'user_side/product_details2.html', context)
 
 
 def get_variant_sizes(request):
@@ -235,3 +247,23 @@ def get_variant_sizes(request):
         return JsonResponse({'sizes': sizes})
     else:
         return JsonResponse({'sizes': []}, status=404)
+
+
+@login_required
+def add_review(request, product_id):
+    product = get_object_or_404(Products, id=product_id)
+    
+    if request.method == 'POST':
+        rating = request.POST.get('rating')
+        comment = request.POST.get('comment')
+
+        if not rating or not comment:
+            return HttpResponse("Rating and comment are required.", status=400)
+
+        Review.objects.create(
+            user=request.user,
+            product=product,
+            rating=rating,
+            comment=comment
+        )
+    return redirect('product_detail', product_id=product.id)
