@@ -2,6 +2,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from .models import User
+from django.core.exceptions import ValidationError
 
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
@@ -27,3 +28,9 @@ class UserRegistrationForm(forms.ModelForm):
 class EmailAuthenticationForm(AuthenticationForm):
     username = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
     password = forms.CharField(label="Password", widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+
+    def confirm_login_allowed(self, user):
+        if not user.is_active:
+            raise ValidationError(
+                "This account is inactive. Please contact support.",
+            )

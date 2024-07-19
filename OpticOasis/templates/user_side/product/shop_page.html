@@ -1,0 +1,171 @@
+{% extends 'user_side/user_base.html' %}
+{% load static %}
+{% block content %}
+
+    <!-- Breadcrumb -->
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/home" rel="nofollow">Home</a>  
+                <span></span><a href="/showcase?targetGroup=targetGroup">targetGroup</a> 
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main">
+        <section class="product-tabs pt-25 pb-20 wow fadeIn animated">
+            <div class="container">
+                <div class="row">
+                    <!-- Sidebar -->
+                    <div class="col-lg-3">
+                        <form id="filter-form">
+                            <!-- Category Widget -->
+                            <div class="widget-category mb-30">
+                                <h5 class="section-title style-1 mb-30 wow fadeIn animated">Category</h5>
+                                <div class="custome-checkbox">
+                                    {% for category in categories %}
+                                        <div>
+                                            <input class="form-check-input filter-checkbox" type="checkbox" name="category" id="category{{ category.id }}" value="{{ category.id }}"
+                                                {% if category.id|stringformat:"s" in selected_categories %}checked{% endif %}>
+                                            <label class="form-check-label" for="category{{ category.id }}"><span>{{ category.name }}</span></label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Sort By Widget -->
+                            <div class="widget-category mb-30">
+                                <h5 class="section-title style-1 mb-30 wow fadeIn animated">Sort by</h5>
+                                <select name="sort" id="sort-select" class="form-control">
+                                    <option value="featured" {% if current_sort == 'featured' %}selected{% endif %}>Featured</option>
+                                    <option value="popularity" {% if current_sort == 'popularity' %}selected{% endif %}>Popularity</option>
+                                    <option value="price_low_high" {% if current_sort == 'price_low_high' %}selected{% endif %}>Price: Low to High</option>
+                                    <option value="price_high_low" {% if current_sort == 'price_high_low' %}selected{% endif %}>Price: High to Low</option>
+                                    <option value="avg_rating" {% if current_sort == 'avg_rating' %}selected{% endif %}>Average Rating</option>
+                                    <option value="new_arrivals" {% if current_sort == 'new_arrivals' %}selected{% endif %}>New Arrivals</option>
+                                    <option value="name_az" {% if current_sort == 'name_az' %}selected{% endif %}>Name: A to Z</option>
+                                    <option value="name_za" {% if current_sort == 'name_za' %}selected{% endif %}>Name: Z to A</option>
+                                    <option value="inventory" {% if current_sort == 'inventory' %}selected{% endif %}>Inventory</option>
+                                </select>
+                            </div>
+
+                            <!-- Price Range Widget -->
+                            <div class="widget-category mb-30">
+                                <h5 class="section-title style-1 mb-30 wow fadeIn animated">Price Range</h5>
+                                <div class="form-group">
+                                    <label for="min_price">Min Price:</label>
+                                    <input type="number" class="form-control filter-input" id="min_price" name="min_price" value="{{ min_price }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="max_price">Max Price:</label>
+                                    <input type="number" class="form-control filter-input" id="max_price" name="max_price" value="{{ max_price }}">
+                                </div>
+                            </div>
+
+                            <!-- Brand Widget -->
+                            <div class="widget-category mb-30">
+                                <h5 class="section-title style-1 mb-30 wow fadeIn animated">Brands</h5>
+                                <div class="custome-checkbox">
+                                    {% for brand in brands %}
+                                        <div>
+                                            <input class="form-check-input filter-checkbox" type="checkbox" name="brand" id="brand{{ brand.id }}" value="{{ brand.id }}"
+                                                {% if brand.id|stringformat:"s" in selected_brands %}checked{% endif %}>
+                                            <label class="form-check-label" for="brand{{ brand.id }}"><span>{{ brand.name }}</span></label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Product List -->
+<div class="col-lg-9">
+    <div class="tab-content wow fadeIn animated" id="myTabContent">
+        <div class="tab-pane fade show active" id="tab-one" role="tabpanel" aria-labelledby="tab-one">
+            <div class="row product-grid-4" id="product-list">
+                {% for product in products %}
+                    <div class="col-lg-4 col-md-4 col-12 col-sm-6">
+                        <div class="product-cart-wrap mb-30">
+                            <div class="product-img-action-wrap">
+                                <div class="product-img product-img-zoom">
+                                    <a href="{% url 'product:product-detail-page' product.id %}">
+                                        {% with product.product_variant_set.first as variant %}
+                                            {% if variant and variant.product_variant_images_set.first %}
+                                                <img class="default-img" src="{{ variant.product_variant_images_set.first.images.url }}" alt="{{ product.product_name }}">
+                                            {% elif product.thumbnail %}
+                                                <img class="default-img" src="{{ product.thumbnail.url }}" alt="{{ product.product_name }}">
+                                            {% else %}
+                                                <img class="default-img" src="{% static 'images/No_Image-1024.webp' %}" alt="{{ product.product_name }}">
+                                            {% endif %}
+                                        {% endwith %}
+                                    </a>
+                                </div>
+                                <div class="product-action-1">
+                                    <a aria-label="Add To Wishlist" class="action-btn hover-up" href="#"><i class="fi-rs-heart"></i></a>
+                                </div>
+                            </div>
+                            <div class="product-content-wrap">
+                                <div class="product-category">
+                                    <a href="#">{{ product.product_brand.brand_name }}</a>
+                                </div>
+                                <h5><a href="{% url 'product:product-detail-page' product.id %}">{{ product.product_name }}</a></h5>
+                                <div class="product-rate-cover">
+                                    <div class="product-rate d-inline-block">
+                                        <div class="product-rating" style="width: {{ product.average_rating|floatformat:0 }}%"></div>
+                                    </div>
+                                    <span class="font-small ml-5 text-muted"> ({{ product.reviews.count }})</span>
+                                </div>
+                                <div class="product-price">
+                                    {% if product.offer_price < product.price %}
+                                        <span>₹ {{ product.offer_price }}</span>
+                                        <span class="old-price">₹ {{ product.price }}</span>
+                                    {% else %}
+                                        <span>₹ {{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if product.percentage_discount > 0 %}
+                                    <div class="product-badge">
+                                        <span class="best">-{{ product.percentage_discount }}%</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <p>No Products Found Yet</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        function updateProducts() {
+            $.ajax({
+                url: '{% url "product:shop-page" %}',
+                data: $('#filter-form').serialize(),
+                dataType: 'json',
+                success: function(data) {
+                    $('#product-list').html(data.product_html);
+                }
+            });
+        }
+
+        $('.filter-checkbox, #sort-select').change(updateProducts);
+        $('.filter-input').on('input', $.debounce(300, updateProducts));
+    });
+    </script>
+{% endblock %}
+
+
+
+

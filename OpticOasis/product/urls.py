@@ -15,9 +15,13 @@ urlpatterns = [
     path('variant/<int:product_id>/', views.variant_detail, name='variant-detail'),
     path('add-variant-image/<int:product_variant_id>/',views.add_variant_image, name='add-variant-image'),
     path('edit-variant/<int:variant_id>/',views.edit_variant, name='edit-variant'),
+     path('delete-image/<int:image_id>/',views.delete_image, name='delete-image'),
     path('variant-status/<int:variant_id>/',views.variant_status, name='variant-status'),
     path('product/<int:product_id>/', views.product_detail_page, name='product-detail-page'),
     path('get-variant-sizes/', views.get_variant_sizes, name='get-variant-sizes'),
-    path('add_review/<int:product_id>/',views.add_review, name='add-review'),
+    path('add-review/<int:product_id>/',views.add_review, name='add-review'),
+    path('shop-page',views.shop_page, name='shop-page'),
+    # path('filter-products/',views.filter_products, name='product-filter'),
+
     
 ]

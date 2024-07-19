@@ -17,6 +17,7 @@
 
     <div class="row">
         <div class="col-lg-8">
+        {% if cart_items %}   
             {% for item in cart_items %}
             <div class="card mb-3 shadow-sm">
                 <div class="card-body">
@@ -57,6 +58,9 @@
                 </div>
             </div>
             {% endfor %}
+        {% else %}
+            <img src="http://iticsystem.com/img/empty-cart.png" alt="Empty cart" class="img-fluid rounded">
+        {% endif %} 
         </div>
         <div class="col-lg-4">
             <div class="card shadow-sm">
@@ -75,7 +79,7 @@
                         <span class="h5">Total</span>
                         <span class="h5" id="cart-total">${{ cart_total }}</span>
                     </div>
-                    <a href="{% url 'cart:checkout' %}" class="btn btn-primary w-100 mb-3">Proceed to Checkout</a>
+                    <a href="{% url 'cart:checkout' %}?variants=" class="btn btn-primary w-100 mb-3" id="proceed-to-checkout">Proceed to Checkout</a>
                     <div class="mb-3">
                         <input type="text" class="form-control mb-2" placeholder="Enter coupon code">
                         <button class="btn btn-outline-secondary w-100">Apply Coupon</button>
@@ -166,8 +170,7 @@ document.querySelectorAll('.qty-btn').forEach(button => {
             },
             success: function(response) {
                 if (response.success) {
-                    document.getElementById('cart-subtotal').textContent = `$${response.new_total}`;
-                    document.getElementById('cart-total').textContent = `$${response.new_total}`;
+                    updateCartTotal();
                     input.closest('.card').querySelector('.h5.mb-0').textContent = `$${response.item_sub_total}`;
                 }
             },
@@ -183,5 +186,27 @@ document.querySelectorAll('.select-item').forEach(checkbox => {
 });
 
 updateCartTotal();
+
+function updateCheckoutURL() {
+    let selectedCartItemIds = [];
+    document.querySelectorAll('.select-item:checked').forEach(checkbox => {
+        selectedCartItemIds.push(checkbox.dataset.id);
+    });
+
+    const checkoutButton = document.getElementById('proceed-to-checkout');
+    checkoutButton.href = `{% url 'cart:checkout' %}?cart_items=` + selectedCartItemIds.join(',');
+}
+
+document.querySelectorAll('.select-item').forEach(checkbox => {
+    checkbox.addEventListener('change', updateCheckoutURL);
+});
+
+// Initial call to set the URL on page load
+updateCheckoutURL();
+
+
 </script>
+
 {% endblock %}
+
+

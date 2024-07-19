@@ -24,3 +24,5 @@ class UserAddress(models.Model):
         verbose_name = "User Address"
         verbose_name_plural = "User Addresses"
 
+
+

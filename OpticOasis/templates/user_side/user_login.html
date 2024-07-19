@@ -1,8 +1,7 @@
-{% comment %} {% load socialaccount %} {% endcomment %}
 {% load static %}
+
 <!DOCTYPE html>
 <html class="no-js" lang="en">
-
 <head>
     <meta charset="utf-8">
     <title>Evara - eCommerce HTML Template</title>
@@ -13,10 +12,13 @@
     <meta property="og:type" content="">
     <meta property="og:url" content="">
     <meta property="og:image" content="">
+
     <!-- Favicon -->
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'user_side/assets/imgs/theme/favicon.svg' %}">
+
     <!-- Template CSS -->
     <link rel="stylesheet" href="{% static 'user_side/assets/css/main.css' %}">
+
     <style>
         .register-card {
             display: flex;
@@ -73,6 +75,7 @@
                             {% endfor %}
                         {% endif %}
                     </div>
+                    
                     <form method="post" action="{% url 'login' %}">
                         {% csrf_token %}
                         <div class="form-group">
@@ -94,20 +97,18 @@
                         </div>
                     </form>
                     <div class="divider-text-center mt-15 mb-15">
-                        <span> or</span>
+                        <span>or</span>
                     </div>
                     <ul class="btn-login list_none text-center mb-15">
-                    {% comment %}     <li><a href="#" class="btn btn-facebook hover-up mb-lg-0 mb-sm-4">Login With Facebook</a></li>{% endcomment %}
-                        {% comment %} <li><a href="{% provider_login_url 'google' %}?next=/" class="btn btn-google hover-up">Login With Google</a></li> {% endcomment %}
-                        <a href="{% url 'social:begin' 'google-oauth2' %}">Login with Google</a>
+                        <li><a href="{% url 'social:begin' 'google-oauth2' %}" class="btn btn-google hover-up">Login with Google</a></li>
                     </ul> 
-                    <div class="text-muted text-center">don't have an account? <a href="{% url 'register' %}">Register now</a></div>
+                    <div class="text-muted text-center">Don't have an account? <a href="{% url 'register' %}">Register now</a></div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Vendor JS-->
+    <!-- Vendor JS -->
     <script src="{% static 'user_side/assets/js/vendor/modernizr-3.6.0.min.js' %}"></script>
     <script src="{% static 'user_side/assets/js/vendor/jquery-3.6.0.min.js' %}"></script>
     <script src="{% static 'user_side/assets/js/vendor/jquery-migrate-3.3.0.min.js' %}"></script>
@@ -127,6 +128,7 @@
     <script src="{% static 'user_side/assets/js/plugins/scrollup.js' %}"></script>
     <script src="{% static 'user_side/assets/js/plugins/jquery.vticker-min.js' %}"></script>
     <script src="{% static 'user_side/assets/js/plugins/jquery.theia.sticky.js' %}"></script>
+
     <!-- Template  JS -->
     <script src="{% static 'user_side/assets/js/main.js?v=3.4' %}"></script>
 </body>

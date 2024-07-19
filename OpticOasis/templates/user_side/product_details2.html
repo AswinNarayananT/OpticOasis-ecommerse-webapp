@@ -116,7 +116,7 @@
                                             {% for variant in variants %}
                                             <li class="list-inline-item {% if selected_variant.id == variant.id %}active{% endif %}">
                                                 <a href="#" class="color-select {% if selected_variant.id == variant.id %}selected{% endif %}" data-variant-id="{{ variant.id }}" data-image-urls="{% for image in variant.product_variant_images_set.all %}{{ image.images.url }}{% if not forloop.last %},{% endif %}{% endfor %}">
-                                                    <span class="d-inline-block rounded-circle border border-dark position-relative" style="background-color: {{ variant.colour_code }}; width: 20px; height: 20px;">
+                                                    <span class="d-inline-block rounded-circle border border-dark position-relative" style="background-color: {{ variant.colour_code }}; width: 25px; height: 25px;">
                                                         {% if variant.id == selected_variant.id %}
                                                         <i class="fi-rs-check position-absolute top-0 start-100 translate-middle text-white" style="font-size: 12px; right: 0; top: 0;"></i>
                                                         {% endif %}
@@ -494,12 +494,14 @@ $(document).ready(function(){
             qtyVal.text(qty - 1);
         }
     });
-
+    
     $('.qty-up').on('click', function(e){
         e.preventDefault();
         var qtyVal = $(this).siblings('.qty-val');
         var qty = parseInt(qtyVal.text());
-        qtyVal.text(qty + 1);
+        if (qty < 5) {  // Add this condition to limit the quantity to a maximum of 5
+            qtyVal.text(qty + 1);
+        }
     });
 
     $('.color-select').on('click', function(e){

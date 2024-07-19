@@ -17,6 +17,8 @@ from .forms import EmailAuthenticationForm
 from brand.models import Brand
 from category.models import Category
 from product.models import Products,Product_images,Product_Variant
+from .signals import user_registered
+from django.core.exceptions import ValidationError
 
 
 # Create your views here.
@@ -33,12 +35,7 @@ def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            user_data = form.save(commit=False)
-            otp = get_random_string(length=6, allowed_chars='1234567890')
-            print(otp)
-            otp_generation_time = timezone.now().isoformat()
-            request.session['otp'] = otp
-            request.session['otp_generation_time'] = otp_generation_time         
+            user_data = form.save(commit=False)      
             user_data.is_active = False
 
             request.session['user_data'] = {
@@ -49,13 +46,8 @@ def register(request):
                 'password': form.cleaned_data.get('password')  
             }
             
-            send_mail(
-                'Your OTP Code',
-                f'Your OTP code is {otp}',
-                settings.DEFAULT_FROM_EMAIL,
-                [user_data.email],
-                fail_silently=False,
-            )
+            user_registered.send(sender=register, user=user_data, request=request)
+
             messages.success(request, 'OTP has been sent to your email. Please verify to complete registration.')
             return redirect('verify_otp')
     else:
@@ -110,6 +102,7 @@ def resend_otp(request):
     user_data = request.session.get('user_data')
     if user_data:
         otp = get_random_string(length=6, allowed_chars='1234567890')
+        print(otp)
         otp_generation_time = timezone.now().isoformat()
         
         request.session['otp'] = otp
@@ -152,6 +145,5 @@ def logout_view(request):
 
 
 def demo(request):
-    
     return render(request,'user_side/shop-product-left.html')
         

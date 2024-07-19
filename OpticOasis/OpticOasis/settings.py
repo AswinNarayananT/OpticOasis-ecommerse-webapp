@@ -52,8 +52,7 @@ INSTALLED_APPS = [
     'social_django',
 ]
 
-# SITE_ID = 1
-# SOCIALACCOUNT_LOGIN_ON_GET = True
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -61,10 +60,11 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'adminpanel.middleware.ActiveUserMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
-    # 'allauth.account.middleware.AccountMiddleware',
+
 ]
 
 ROOT_URLCONF = 'OpticOasis.urls'
@@ -131,6 +131,7 @@ AUTHENTICATION_BACKENDS = [
     'accounts.backends.EmailBackend',  
     'social_core.backends.google.GoogleOAuth2',
     'django.contrib.auth.backends.ModelBackend',
+    'accounts.backends.GoogleAuthBackend',
 ]
 
 # SOCIALACCOUNT_PROVIDERS = {
@@ -155,9 +156,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -199,8 +197,8 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_user',
     'social_core.pipeline.social_auth.associate_by_email',
     'social_core.pipeline.user.get_username',
-    'accounts.pipeline.get_additional_fields',  # Add this line
-    'accounts.pipeline.create_user',            # Add this line
+    'accounts.pipeline.get_additional_fields',  
+    'accounts.pipeline.create_user',            
     'social_core.pipeline.social_auth.associate_user',
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',

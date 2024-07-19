@@ -1,6 +1,7 @@
 # backends.py
 from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth import get_user_model
+from django.contrib.auth.backends import ModelBackend
 from . models import User
 
 class EmailBackend(BaseBackend):
@@ -19,3 +20,15 @@ class EmailBackend(BaseBackend):
             return User.objects.get(pk=user_id)
         except User.DoesNotExist:
             return None
+
+
+
+class GoogleAuthBackend(ModelBackend):
+    def authenticate(self, request, **kwargs):
+        user = super().authenticate(request, **kwargs)  
+        if user and user.social_auth.exists():  
+            if not user.is_active:
+                user.is_active = True
+                user.save()
+
+        return user

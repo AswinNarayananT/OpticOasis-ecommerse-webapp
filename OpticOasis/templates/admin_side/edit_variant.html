@@ -47,6 +47,7 @@
                         {% for image in variant_images %}
                         <div class="col-md-3 mb-3">
                             <img src="{{ image.images.url }}" class="img-fluid img-thumbnail" alt="Variant Image">
+                            <button type="button" class="btn btn-danger mt-2" onclick="deleteImage({{ image.id }})">Delete</button>
                         </div>
                         {% empty %}
                         <p>No images available for this variant</p>
@@ -256,5 +257,45 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+</script>
+<script>
+    function deleteImage(imageId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch("{% url 'product:delete-image' 0 %}".replace('0', imageId), {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire(
+                            'Deleted!',
+                            'The image has been deleted.',
+                            'success'
+                        ).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire(
+                            'Error!',
+                            'There was an error deleting the image.',
+                            'error'
+                        );
+                    }
+                });
+            }
+        });
+    }
 </script>
 {% endblock %}

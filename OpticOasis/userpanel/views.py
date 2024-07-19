@@ -4,12 +4,12 @@ from django.contrib import messages
 from .models import UserAddress
 # Create your views here.
 
-
+@login_required(login_url='/login/')
 def user_profile(request):
     
     return render(request, 'user_side/userpanel/user_profile.html')
 
-@login_required
+@login_required(login_url='/login/')
 def add_address(request):
     user_addresses = UserAddress.objects.filter(user=request.user).order_by('-status', 'id')
     context = {
