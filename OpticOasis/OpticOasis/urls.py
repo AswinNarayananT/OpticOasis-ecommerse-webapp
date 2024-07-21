@@ -25,9 +25,10 @@ urlpatterns = [
     path('adminpanel/',include('adminpanel.urls')),
     path('adminpanel/category',include('category.urls')),
     path('adminpanel/brand',include('brand.urls')),
-    path('product/',include('product.urls')),
+    path('product/', include('product.urls', namespace='product')),
     path('cart/',include('cart.urls')),
     path('userpanel/',include('userpanel.urls')),
+    path('order/', include(('orders.urls', 'orders'), namespace='orders')),
     path('auth/', include('social_django.urls', namespace='social')),
 ]
 

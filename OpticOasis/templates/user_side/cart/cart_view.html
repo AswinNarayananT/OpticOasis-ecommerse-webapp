@@ -19,12 +19,12 @@
         <div class="col-lg-8">
         {% if cart_items %}   
             {% for item in cart_items %}
-            <div class="card mb-3 shadow-sm">
+            <div class="card mb-3 shadow-sm" data-product-active="{{ item.product.is_active|lower }}" data-variant-status="{{ item.variant.variant_status|lower }}" data-variant-stock="{{ item.variant.variant_stock }}">
                 <div class="card-body">
                     <div class="row align-items-center">
                         <div class="col-auto">
                             <div class="form-check">
-                                <input class="form-check-input select-item" type="checkbox" data-id="{{ item.id }}" data-price="{{ item.sub_total }}" checked>
+                                <input class="form-check-input select-item" type="checkbox" data-id="{{ item.id }}" data-price="{{ item.sub_total }}">
                             </div>
                         </div>
                         <div class="col-md-2 mb-3 mb-md-0">
@@ -68,7 +68,7 @@
                     <h3 class="card-title h4 mb-4">Order Summary</h3>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Subtotal</span>
-                        <span id="cart-subtotal">${{ cart_total }}</span>
+                        <span id="cart-subtotal">$0.00</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Shipping</span>
@@ -77,7 +77,7 @@
                     <hr>
                     <div class="d-flex justify-content-between mb-4">
                         <span class="h5">Total</span>
-                        <span class="h5" id="cart-total">${{ cart_total }}</span>
+                        <span class="h5" id="cart-total">$0.00</span>
                     </div>
                     <a href="{% url 'cart:checkout' %}?variants=" class="btn btn-primary w-100 mb-3" id="proceed-to-checkout">Proceed to Checkout</a>
                     <div class="mb-3">
@@ -90,123 +90,188 @@
     </div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-function updateCartTotal() {
-    let newTotal = 0;
-    document.querySelectorAll('.select-item:checked').forEach(checkbox => {
-        newTotal += parseFloat(checkbox.dataset.price);
-    });
-    document.getElementById('cart-subtotal').textContent = `$${newTotal.toFixed(2)}`;
-    document.getElementById('cart-total').textContent = `$${newTotal.toFixed(2)}`;
-}
-
-document.querySelectorAll('.remove-item').forEach(button => {
-    button.addEventListener('click', function(event) {
-        event.preventDefault();
-        const url = this.dataset.url;
-        Swal.fire({
-            title: 'Remove Item',
-            text: "Are you sure you want to remove this item from your cart?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, remove it'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = url;
-            }
+    function updateCartTotal() {
+        let newSubtotal = 0;
+        document.querySelectorAll('.select-item:checked').forEach(checkbox => {
+            newSubtotal += parseFloat(checkbox.dataset.price);
+        });
+        const formattedTotal = newSubtotal.toFixed(2);
+        console.log(`Updated total: $${formattedTotal}`); // Debug line
+        document.getElementById('cart-subtotal').textContent = `$${formattedTotal}`;
+        document.getElementById('cart-total').textContent = `$${formattedTotal}`;
+    }
+    
+    document.querySelectorAll('.remove-item').forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+            const url = this.dataset.url;
+            Swal.fire({
+                title: 'Remove Item',
+                text: "Are you sure you want to remove this item from your cart?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, remove it'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url;
+                }
+            });
         });
     });
-});
-
-document.querySelectorAll('.qty-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        const input = this.closest('.input-group').querySelector('.qty-input');
-        const stock = parseInt(this.closest('.card').querySelector('.stock').textContent.split(': ')[1]);
-        let currentValue = parseInt(input.value);
-        let newValue;
-        
-        if (this.dataset.action === 'increase') {
-            if (currentValue < 5) {
-                if (currentValue < stock) {
+    
+    document.querySelectorAll('.qty-btn').forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+            const card = this.closest('.card');
+            const input = card.querySelector('.qty-input');
+            const stockElement = card.querySelector('.stock');
+            const stock = parseInt(card.dataset.variantStock);
+            const productActive = card.dataset.productActive === 'true';
+            const variantStatus = card.dataset.variantStatus === 'true';
+            let currentValue = parseInt(input.value);
+            let newValue;
+    
+            if (!productActive || !variantStatus) {
+                Swal.fire({
+                    title: 'Unavailable',
+                    text: 'This item is currently unavailable.',
+                    icon: 'warning',
+                    confirmButtonColor: '#3085d6'
+                });
+                return;
+            }
+    
+            if (stock <= 0) {
+                Swal.fire({
+                    title: 'Out of Stock',
+                    text: 'This item is currently out of stock.',
+                    icon: 'warning',
+                    confirmButtonColor: '#3085d6'
+                });
+                return;
+            }
+    
+            if (this.dataset.action === 'increase') {
+                if (currentValue < Math.min(5, stock)) {
                     newValue = currentValue + 1;
                 } else {
                     newValue = currentValue;
                     Swal.fire({
-                        title: 'Stock Limit Reached',
-                        text: `You can only add up to ${stock} items in the cart.`,
+                        title: 'Quantity Limit Reached',
+                        text: `You can only add up to ${Math.min(5, stock)} items in the cart.`,
                         icon: 'warning',
                         confirmButtonColor: '#3085d6'
                     });
                 }
+            } else if (this.dataset.action === 'decrease' && currentValue > 1) {
+                newValue = currentValue - 1;
             } else {
                 newValue = currentValue;
-                Swal.fire({
-                    title: 'Quantity Limit Reached',
-                    text: 'You can only add up to 5 items.',
-                    icon: 'warning',
-                    confirmButtonColor: '#3085d6'
-                });
             }
-        } else if (this.dataset.action === 'decrease' && currentValue > 1) {
-            newValue = currentValue - 1;
-        } else {
-            newValue = currentValue;
-        }
-
-        input.value = newValue;
-
-        const itemId = this.dataset.id;
-        $.ajax({
-            url: '{% url "cart:update_cart_quantity" %}',
-            method: 'POST',
-            data: {
-                'item_id': itemId,
-                'quantity': newValue,
-                'csrfmiddlewaretoken': '{{ csrf_token }}'
-            },
-            success: function(response) {
-                if (response.success) {
-                    updateCartTotal();
-                    input.closest('.card').querySelector('.h5.mb-0').textContent = `$${response.item_sub_total}`;
+    
+            input.value = newValue;
+    
+            const itemId = this.dataset.id;
+            $.ajax({
+                url: '{% url "cart:update_cart_quantity" %}',
+                method: 'POST',
+                data: {
+                    'item_id': itemId,
+                    'quantity': newValue,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        card.querySelector('.h5.mb-0').textContent = `$${response.item_sub_total}`;
+                        
+                        const checkbox = card.querySelector('.select-item');
+                        checkbox.dataset.price = response.item_sub_total;
+                        
+                        updateItemAvailability(card);
+                        
+                        if (checkbox.checked) {
+                            updateCartTotal();
+                        }
+                    } else {
+                        console.error('Error in server response:', response);
+                        Swal.fire({
+                            title: 'Error',
+                            text: response.message || 'An error occurred while updating the cart.',
+                            icon: 'error',
+                            confirmButtonColor: '#3085d6'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error updating quantity:', error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'An error occurred while updating the cart.',
+                        icon: 'error',
+                        confirmButtonColor: '#3085d6'
+                    });
                 }
-            },
-            error: function(response) {
-                console.error('Error updating quantity:', response);
-            }
+            });
         });
     });
-});
-
-document.querySelectorAll('.select-item').forEach(checkbox => {
-    checkbox.addEventListener('change', updateCartTotal);
-});
-
-updateCartTotal();
-
-function updateCheckoutURL() {
-    let selectedCartItemIds = [];
-    document.querySelectorAll('.select-item:checked').forEach(checkbox => {
-        selectedCartItemIds.push(checkbox.dataset.id);
+    
+    document.querySelectorAll('.select-item').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateCartTotal();
+            updateCheckoutURL();
+        });
     });
-
-    const checkoutButton = document.getElementById('proceed-to-checkout');
-    checkoutButton.href = `{% url 'cart:checkout' %}?cart_items=` + selectedCartItemIds.join(',');
-}
-
-document.querySelectorAll('.select-item').forEach(checkbox => {
-    checkbox.addEventListener('change', updateCheckoutURL);
-});
-
-// Initial call to set the URL on page load
-updateCheckoutURL();
-
-
+    
+    function updateCheckoutURL() {
+        let selectedCartItemIds = [];
+        document.querySelectorAll('.select-item:checked').forEach(checkbox => {
+            selectedCartItemIds.push(checkbox.dataset.id);
+        });
+    
+        const checkoutButton = document.getElementById('proceed-to-checkout');
+        checkoutButton.href = `{% url 'cart:checkout' %}?cart_items=` + selectedCartItemIds.join(',');
+    }
+    
+    function updateItemAvailability(card) {
+        const stockElement = card.querySelector('.stock');
+        const stock = parseInt(card.dataset.variantStock);
+        const productActive = card.dataset.productActive === 'true';
+        const variantStatus = card.dataset.variantStatus === 'true';
+        const qtyButtons = card.querySelectorAll('.qty-btn');
+        const checkbox = card.querySelector('.select-item');
+    
+        if (!productActive || !variantStatus) {
+            stockElement.textContent = 'Unavailable';
+            stockElement.classList.add('text-danger');
+            qtyButtons.forEach(btn => btn.disabled = true);
+            checkbox.disabled = true;
+            checkbox.checked = false;
+        } else if (stock <= 0) {
+            stockElement.textContent = 'Out of Stock';
+            stockElement.classList.add('text-danger');
+            qtyButtons.forEach(btn => btn.disabled = true);
+            checkbox.disabled = true;
+            checkbox.checked = false;
+        } else {
+            stockElement.textContent = `Stock left: ${stock}`;
+            stockElement.classList.remove('text-danger');
+            qtyButtons.forEach(btn => btn.disabled = false);
+            checkbox.disabled = false;
+        }
+    }
+    
+    // Call this function for each card on page load
+    document.querySelectorAll('.card').forEach(updateItemAvailability);
+    
+    // Initial calls to set up the page
+    updateCartTotal();
+    updateCheckoutURL();
+    
 </script>
 
 {% endblock %}
-
-

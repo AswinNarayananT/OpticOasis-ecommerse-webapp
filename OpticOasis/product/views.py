@@ -8,7 +8,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from .models import Products, Review
-from django.db.models import Avg
+from django.db.models import Avg, Count, Sum, Prefetch
+from django.db.models.functions import Lower
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 
 
 
@@ -144,8 +147,6 @@ def add_variant(request, product_id):
     return render(request, 'admin_side/add_variant.html', {'product': product, 'variants': variants})
 
 
-
-
 def add_variant_image(request, product_variant_id):
     product_variant = get_object_or_404(Product_Variant, id=product_variant_id)
     
@@ -256,12 +257,19 @@ def get_variant_sizes(request):
     variant_id = request.GET.get('variant_id')
     variant = Product_Variant.objects.filter(id=variant_id).first()
     
-    if variant:
-        variants = Product_Variant.objects.filter(product=variant.product, colour_code=variant.colour_code).values('size', 'variant_stock')
-        sizes = [{'size': v['size'], 'stock': v['stock']} for v in variants]
-        return JsonResponse({'sizes': sizes})
-    else:
-        return JsonResponse({'sizes': []}, status=404)
+    if not variant:
+        return JsonResponse({'sizes': []}, status=404)  
+    
+    sizes = []
+    size = getattr(variant, 'size', None)
+    stock = getattr(variant, 'variant_stock', 0)
+
+    if size:
+        sizes.append({'size': size, 'stock': stock})
+    
+    return JsonResponse({'sizes': sizes})
+
+
 
 
 @login_required(login_url='/login/')
@@ -283,35 +291,6 @@ def add_review(request, product_id):
         )
     return redirect('product:product-detail-page', product_id=product.id)
 
-
-# def shop_page(request):
-#     brands =Brand.objects.all()
-#     categorys=Category.objects.all()
-#     products = Products.objects.all()
-#     product_variant_images = {}
-
-#     for product in products:
-#         variant = Product_Variant.objects.filter(product=product, variant_status=True).first()
-#         if variant:
-#             image = Product_variant_images.objects.filter(product_variant=variant).first()
-#             if image:
-#                 product_variant_images[product.id] = image.images.url
-                
-#                 print(f"Image URL for product {product.id}: {product_variant_images[product.id]}")
-
-#     context = {
-#         'brands':brands,
-#         'categorys':categorys,
-#         'products': products,
-#         'product_variant_images': product_variant_images,
-#     }
-#     return render(request,'user_side/product/shop_page.html',context)
-
-
-from django.db.models import Avg, Count, Sum, Prefetch
-from django.db.models.functions import Lower
-from django.http import JsonResponse
-from django.template.loader import render_to_string
 
 def shop_page(request):
     brands = Brand.objects.all()
@@ -399,103 +378,3 @@ def shop_page(request):
         return JsonResponse({'product_html': product_html})
     
     return render(request, 'user_side/product/shop_page.html', context)
-
-
-# from django.shortcuts import render
-# from .models import Products, Product_Variant, Product_variant_images
-
-# def shop_page(request):
-#     brands = Brand.objects.all()
-#     categorys = Category.objects.all()
-#     products = Products.objects.all()
-
-#     # Create a dictionary to store product variant images
-#     product_variant_images = {}
-
-#     # Function to get product variant image URL
-#     def get_product_variant_image(product):
-#         variant = Product_Variant.objects.filter(product=product, variant_status=True).first()
-#         if variant:
-#             image = Product_variant_images.objects.filter(product_variant=variant).first()
-#             if image:
-#                 return image.images.url  # Return the image URL
-#         return None  # Return None if no image found
-
-#     # Populate product variant images dictionary
-#     for product in products:
-#         product_variant_images[product.id] = get_product_variant_image(product)
-
-#     context = {
-#         'brands': brands,
-#         'categorys': categorys,
-#         'products': products,
-#         'product_variant_images': product_variant_images,
-#     }
-#     return render(request, 'user_side/product/shop_page.html', context)
-
-
-# def filter_products(request):
-#     category_ids = request.GET.getlist('category_ids[]', [])
-#     brand_ids = request.GET.getlist('brand_ids[]', [])
-#     sort_by = request.GET.get('sort_by', None)
-#     price_range = request.GET.get('price_range', None)
-
-#     products = Products.objects.all()
-
-#     if category_ids:
-#         products = products.filter(category__id__in=category_ids)
-
-#     if brand_ids:
-#         products = products.filter(brand__id__in=brand_ids)
-
-#     if sort_by == 'popularity':
-#         # Implement your popularity sorting logic here
-#         products = products.order_by('-popularity')
-
-#     elif sort_by == 'average_rating':
-#         # Implement your average rating sorting logic here
-#         products = products.order_by('-average_rating')
-
-#     elif sort_by == 'price_low_high':
-#         # Implement your price low to high sorting logic here
-#         products = products.order_by('price')
-
-#     elif sort_by == 'price_high_low':
-#         # Implement your price high to low sorting logic here
-#         products = products.order_by('-price')
-
-#     # Implement price range filtering logic if applicable
-#     if price_range == '0-200':
-#         products = products.filter(price__range=(0, 200))
-
-#     elif price_range == '200-400':
-#         products = products.filter(price__range=(200, 400))
-
-#     elif price_range == '400-600':
-#         products = products.filter(price__range=(400, 600))
-
-#     elif price_range == '600-800':
-#         products = products.filter(price__range=(600, 800))
-
-#     elif price_range == '800+':
-#         products = products.filter(price__gte=800)
-
-#     context = {
-#         'products': products,
-#         'product_variant_images': get_product_variant_images(products),
-#     }
-
-#     # Render products HTML snippet and return as JSON response
-#     html_products = render_to_string('user_side/product/product_grid.html', context, request=request)
-#     return JsonResponse({'html_products': html_products})
-
-# def get_product_variant_images(products):
-#     product_variant_images = {}
-#     for product in products:
-#         variant = Product_Variant.objects.filter(product=product, variant_status=True).first()
-#         if variant:
-#             image = Product_variant_images.objects.filter(product_variant=variant).first()
-#             if image:
-#                 product_variant_images[product.id] = image.images.url
-#     return product_variant_images
-

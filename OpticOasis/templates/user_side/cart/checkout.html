@@ -5,17 +5,26 @@
 <main class="container my-5">
     <h1 class="h2 mb-4">Checkout</h1>
 
-    <form method="post" action="{% url 'cart:checkout' %}">
+    {% if messages %}
+    <div class="alert alert-danger" role="alert">
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'orders:order-placed' %}" id="checkoutForm">
         {% csrf_token %}
+        <input type="hidden" name="cart_item_ids" value="{{ cart_item_ids }}">
         <div class="row">
             <div class="col-lg-8">
                 <!-- Shipping Address Section -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-body">
                         <h3 class="card-title h5 mb-3">Select Shipping Address</h3>
-                        <div class="row">
+                        <div class="row" id="addressList">
                             {% for address in user_addresses %}
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-3 address-item">
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="form-check">
@@ -108,8 +117,7 @@
                         </div>
                     </div>
                 </div>
-
-                <a href="{% url 'cart:order-placed' %}"><button type="submit" class="btn btn-primary btn-lg w-100">Place Order</button></a>
+                <button type="submit" class="btn btn-primary w-100">Place Order</button>
             </div>
         </div>
     </form>
@@ -125,6 +133,7 @@
             </div>
             <div class="modal-body">
                 <form id="newAddressForm">
+                    {% csrf_token %}
                     <div class="mb-3">
                         <input type="text" class="form-control" name="name" placeholder="Name" required>
                     </div>
@@ -147,28 +156,71 @@
                             <input type="text" class="form-control" name="state" placeholder="State" required>
                         </div>
                         <div class="col">
-                            <input type="text" class="form-control" name="country" placeholder="Country" required>
+                            <input type="text" class="form-control" name="country" placeholder="Country">
                         </div>
                     </div>
                     <div class="mb-3">
                         <input type="text" class="form-control" name="phone_number" placeholder="Phone Number" required>
                     </div>
+                    <button type="submit" class="btn btn-primary">Add Address</button>
                 </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="saveNewAddress">Save Address</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-document.getElementById('saveNewAddress').addEventListener('click', function() {
-    // Here you would typically send an AJAX request to save the new address
-    // For this example, we'll just close the modal and refresh the page
-    $('#newAddressModal').modal('hide');
-    location.reload();
-});
-</script>
+    document.getElementById('saveNewAddress').addEventListener('click', function(event) {
+        event.preventDefault();
+        var form = document.getElementById('newAddressForm');
+        var formData = new FormData(form);
+    
+        fetch('{% url "orders:add-address" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        }).then(data => {
+            console.log(data); // Log the response data for debugging
+            if (data.success) {
+                var newAddress = `
+                    <div class="col-md-6 mb-3 address-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="selected_address" id="address${data.address_id}" value="${data.address_id}" checked>
+                                    <label class="form-check-label" for="address${data.address_id}">
+                                        <strong>${data.name}</strong><br>
+                                        ${data.house_name}, ${data.street_name}<br>
+                                        ${data.district}, ${data.state}<br>
+                                        ${data.country} - ${data.pin_number}<br>
+                                        Phone: ${data.phone_number}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('addressList').insertAdjacentHTML('afterbegin', newAddress);
+                document.getElementById('newAddressForm').reset();
+                var newAddressModal = new bootstrap.Modal(document.getElementById('newAddressModal'));
+                newAddressModal.hide();
+            } else {
+                alert('Failed to add address: ' + data.error);
+            }
+        }).catch(error => {
+            console.error('Error:', error); // Log any errors
+            alert('An error occurred: ' + error.message);
+        });
+    });
+    </script>
+    
+    
 {% endblock %}

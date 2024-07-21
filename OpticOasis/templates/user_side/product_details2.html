@@ -133,22 +133,22 @@
                                             {% if unique_sizes %}
                                                 {% for size in unique_sizes %}
                                                 <li>
-                                                    <a href="#" class="size-selector {% if size == selected_size %}active{% endif %}" data-size="{{ size }}">
-                                                        {{ size }}
+                                                    <a href="#" class="size-selector {% if size.size == selected_size %}active{% endif %}" data-size="{{ size.size }}">
+                                                        {{ size.size }}: <span class="stock-status">{% if size.variant_stock > 0 %}{{ size.variant_stock }} in stock{% else %}Out of Stock{% endif %}</span>
                                                     </a>
                                                 </li>
                                                 {% endfor %}
                                             {% else %}
                                             <li>
                                                 <a class="size-selector">
-                                                    {{ selected_variant.size }}
+                                                    {{ selected_variant.size }}: <span class="stock-status">{% if selected_variant.variant_stock > 0 %}{{ selected_variant.variant_stock }} in stock{% else %}Out of Stock{% endif %}</span>
                                                 </a>
                                             </li>
-                                                
-                                            {% endif %}    
-
-
+                                            {% endif %}
                                         </ul>
+                                        
+                                        
+                                       
                                     </div>
                                     
                                     <div class="bt-1 border-color-1 mt-30 mb-30"></div>
@@ -159,7 +159,15 @@
                                             <a href="#" class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
                                         </div>
                                         <div class="product-extra-link2">
-                                            <button type="button" class="button button-add-to-cart">Add to cart</button>
+                                            {% if user.is_authenticated %}
+                                                <!-- Add to Cart Button -->
+                                                <button type="button" class="button button-add-to-cart">Add to Cart</button>
+
+                                                <!-- Go to Cart Button (Initially hidden) -->
+                                                <button id="go-to-cart" type="button" class="button button-go-to-cart" style="display:none;">Go to Cart</button>
+                                            {% else %}
+                                                <button type="button" class="button button-add-to-cart" id="login-to-add">Add to Cart</button>
+                                            {% endif %}
                                             <a aria-label="Add To Wishlist" class="action-btn hover-up" href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
                                             <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html"><i class="fi-rs-shuffle"></i></a>
                                         </div>
@@ -477,77 +485,67 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$(document).ready(function(){
-    $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
-            if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
-                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+    $(document).ready(function() {
+        // Function to check if the item is already in the cart
+        function updateButtonStatus() {
+            var selectedColor = $('.color-select.selected').data('variant-id');
+            
+            if (!selectedColor) {
+                return;
             }
-        }
-    });
-
-    $('.qty-down').on('click', function(e){
-        e.preventDefault();
-        var qtyVal = $(this).siblings('.qty-val');
-        var qty = parseInt(qtyVal.text());
-        if (qty > 1) {
-            qtyVal.text(qty - 1);
-        }
-    });
     
-    $('.qty-up').on('click', function(e){
-        e.preventDefault();
-        var qtyVal = $(this).siblings('.qty-val');
-        var qty = parseInt(qtyVal.text());
-        if (qty < 5) {  // Add this condition to limit the quantity to a maximum of 5
-            qtyVal.text(qty + 1);
-        }
-    });
-
-    $('.color-select').on('click', function(e){
-        e.preventDefault();
-        $('.color-select').removeClass('selected'); // remove selected class from all
-        $(this).addClass('selected'); // add selected class to the clicked one
-    });
-
-    $('.button-add-to-cart').on('click', function(){
-        var selectedColor = $('.color-select.selected').data('variant-id');
-        var quantity = $(this).closest('.detail-extralink').find('.qty-val').text();
-        
-        if (!selectedColor) {
-            alert('Please select a color variant.');
-            return;
-        }
-        
-        $.ajax({
-            url: "{% url 'cart:add-to-cart' %}",
-            method: "POST",
-            data: {
-                'variant_id': selectedColor,
-                'quantity': quantity,
-                'csrfmiddlewaretoken': '{{ csrf_token }}'
-            },
-            success: function(response){
-                if(response.status == 'success'){
-                    alert('Item added to cart');
-                    // Optionally, update the cart UI here
-                } else {
-                    alert('Error adding item to cart');
+            $.ajax({
+                url: "{% url 'cart:button' %}", // Adjust this URL to your actual endpoint
+                method: "GET",
+                data: {
+                    'variant_id': selectedColor
+                },
+                success: function(response) {
+                    if (response.is_in_cart) {
+                        $('.button-add-to-cart').hide();
+                        $('.button-go-to-cart').show();
+                    } else {
+                        $('.button-add-to-cart').show();
+                        $('.button-go-to-cart').hide();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
                 }
-            },
-            error: function(xhr, status, error){
-                console.error(xhr.responseText);
-                alert('An error occurred. Please try again.');
+            });
+        }
+    
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                }
             }
         });
-    });
-});
-</script>
-<script>
-    $(document).ready(function() {
+    
+        $('.qty-down').on('click', function(e) {
+            e.preventDefault();
+            var qtyVal = $(this).siblings('.qty-val');
+            var qty = parseInt(qtyVal.text());
+            if (qty > 1) {
+                qtyVal.text(qty - 1);
+            }
+        });
+        
+        $('.qty-up').on('click', function(e) {
+            e.preventDefault();
+            var qtyVal = $(this).siblings('.qty-val');
+            var qty = parseInt(qtyVal.text());
+            if (qty < 5) {
+                qtyVal.text(qty + 1);
+            }
+        });
+    
         $('.color-select').on('click', function(e) {
             e.preventDefault();
-            
+            $('.color-select').removeClass('selected'); // Remove selected class from all
+            $(this).addClass('selected'); // Add selected class to the clicked one
+    
             var imageUrls = $(this).data('image-urls').split(',');
             var variantId = $(this).data('variant-id');
             
@@ -571,27 +569,76 @@ $(document).ready(function(){
     
             // Fetch and update sizes for the selected variant
             $.ajax({
-                url: "{% url 'product:get-variant-sizes' %}", // URL to your view that returns sizes for a variant
+                url: "{% url 'product:get-variant-sizes' %}", // Adjust this URL to your actual endpoint
                 method: 'GET',
                 data: {
                     variant_id: variantId
                 },
-               
                 success: function(response) {
                     var sizeList = $('#size-list');
                     sizeList.empty();
-                    response.sizes.forEach(function(size) {
-                        sizeList.append('<li><a href="#" class="size-selector" data-size="' + size + '">' + size + '</a></li>');
+                    response.sizes.forEach(function(item) {
+                        var size = item.size;
+                        var stock = item.stock;
+                        var stockText = stock > 0 ? stock + ' in stock' : 'Out of Stock';
+                        sizeList.append('<li><a href="#" class="size-selector" data-size="' + size + '">' + size + ': <span class="stock-status">' + stockText + '</span></a></li>');
                     });
                 },
                 error: function() {
                     console.error('Failed to fetch sizes for the selected variant.');
                 }
             });
+            // Update button status based on the selected variant
+            updateButtonStatus();
         });
-    });
     
-</script>
+        $('.button-add-to-cart').on('click', function(e) {
+            e.preventDefault();
+            var selectedColor = $('.color-select.selected').data('variant-id');
+            var quantity = $(this).closest('.detail-extralink').find('.qty-val').text();
+    
+            if (!selectedColor) {
+                alert('Please select a color variant.');
+                return;
+            }
+    
+            $.ajax({
+                url: "{% url 'cart:add-to-cart' %}",
+                method: "POST",
+                data: {
+                    'variant_id': selectedColor,
+                    'quantity': quantity,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.status == 'success') {
+                        alert('Item added to cart');
+                        // Update button status after adding item to cart
+                        updateButtonStatus();
+                    } else {
+                        alert('Error adding item to cart');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                    alert('An error occurred. Please try again.');
+                }
+            });
+        });
+    
+        $('#login-to-add').on('click', function() {
+            window.location.href = "{% url 'login' %}";
+        });
+
+        $('#go-to-cart').on('click', function() {
+            window.location.href = "{% url 'cart:cart-view' %}";
+        });
+    
+        // Initial call to set button status when the page loads
+        updateButtonStatus();
+    });
+    </script>
+    
     
 <script>
     document.addEventListener('DOMContentLoaded', function() {

@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'product',
     'cart',
     'userpanel',
+    'orders',
     'social_django',
 ]
 
