@@ -9,7 +9,7 @@ from django.contrib import messages
 @admin_required
 def list_brand(request):
     brand = Brand.objects.all().order_by('id')
-    return render(request,'admin_side/list_brand.html',{'brand':brand})
+    return render(request,'admin_side/brand/list_brand.html',{'brand':brand})
 
 
 
@@ -34,7 +34,7 @@ def create_brand(request):
                 brand.save()
             return redirect('brand:list-brand')
 
-    return render(request, 'admin_side/create_brand.html')
+    return render(request, 'admin_side/brand/create_brand.html')
 
 @admin_required
 def edit_brand(request, brand_id):
@@ -57,7 +57,7 @@ def edit_brand(request, brand_id):
             brand.save()
         return redirect('brand:list-brand')
 
-    return render(request, 'admin_side/edit_brand.html', {'brand': brand})
+    return render(request, 'admin_side/brand/edit_brand.html', {'brand': brand})
        
 
 @admin_required

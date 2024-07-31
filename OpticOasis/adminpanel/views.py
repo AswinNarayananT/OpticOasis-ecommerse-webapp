@@ -7,12 +7,11 @@ from accounts.models import User
 from accounts.forms import UserRegistrationForm  
 from accounts.models import User  
 from utils.decorators import admin_required
+from datetime import datetime
+from orders.models import OrderMain
 # from django.views.decorators.csrf import csrf_protect
 
 # Create your views here.
-
-
-
 
 def admin_login(request):
     if request.method == 'POST':
@@ -29,18 +28,38 @@ def admin_login(request):
         else:
             messages.error(request, 'Invalid email or password.')
 
-    return render(request, 'admin_side/admin_login.html')
+    return render(request, 'admin_side/admin/admin_login.html')
 
 
 @admin_required
 def admin_dashboard(request):
-    return render(request, 'admin_side/admin_dashboard.html')
+    orders = OrderMain.objects.filter(order_status="Delivered")
+    return render(request, 'admin_side/admin/admin_dashboard.html', {'orders': orders})
+
+
+def sales_report(request):
+    if request.method == 'POST':
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        
+        if start_date and end_date:
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+            except ValueError:
+                return redirect('admin_panel:sales-report')
+            
+            orders = OrderMain.objects.filter(date__range=[start_date, end_date], order_status="Delivered")
+            return render(request, 'admin_side/dashboard/salesreport.html', {'orders': orders})
+    
+    orders = OrderMain.objects.filter(order_status="Delivered")
+    return render(request, 'admin_side/admin/salesreport.html', {'orders': orders})
 
 
 @admin_required
 def user_list(request):
     users = User.objects.filter(is_admin=False)
-    return render(request, 'admin_side/user_view.html', {'users': users})
+    return render(request, 'admin_side/user/user_view.html', {'users': users})
 
 
 @admin_required
@@ -55,7 +74,7 @@ def user_create(request):
             return redirect('user_list')
     else:
         form = UserRegistrationForm()
-    return render(request, 'admin_side/user_form.html', {'form': form})
+    return render(request, 'admin_side/user/user_form.html', {'form': form})
 
 
 @admin_required

@@ -52,7 +52,7 @@
                             </div>
                         </div>
                         <div class="col-md-3 text-end">
-                            <p class="h5 mb-0">${{ item.sub_total }}</p>
+                            <p class="h5 mb-0">₹{{ item.sub_total }}</p>
                         </div>
                     </div>
                 </div>
@@ -68,28 +68,72 @@
                     <h3 class="card-title h4 mb-4">Order Summary</h3>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Subtotal</span>
-                        <span id="cart-subtotal">$0.00</span>
+                        <span id="cart-subtotal">₹0.00</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Shipping</span>
                         <span class="text-success">Free</span>
                     </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Discount</span>
+                        <span id="cart-discount">₹0.00</span>
+                    </div>
                     <hr>
                     <div class="d-flex justify-content-between mb-4">
                         <span class="h5">Total</span>
-                        <span class="h5" id="cart-total">$0.00</span>
+                        <span class="h5" id="cart-total">₹0.00</span>
                     </div>
                     <a href="{% url 'cart:checkout' %}?variants=" class="btn btn-primary w-100 mb-3" id="proceed-to-checkout">Proceed to Checkout</a>
-                    <div class="mb-3">
-                        <input type="text" class="form-control mb-2" placeholder="Enter coupon code">
-                        <button class="btn btn-outline-secondary w-100">Apply Coupon</button>
-                    </div>
+                    <form id="coupon-form" class="mb-3">
+                        {% csrf_token %}
+                        <div class="input-group mb-2">
+                            <input type="text" name="coupon_code" id="coupon-code" class="form-control" placeholder="Enter coupon code">
+                            <button class="btn btn-outline-secondary" type="submit" id="apply-coupon-btn">Apply Coupon</button>
+                        </div>
+                        <div id="coupon-message" class="text-danger"></div>
+                    </form>
+                    <button type="button" class="btn btn-outline-secondary w-100 mt-2" data-bs-toggle="modal" data-bs-target="#couponsModal">
+                        View Available Coupons
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal structure -->
+    <div class="modal fade" id="couponsModal" tabindex="-1" aria-labelledby="couponsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="couponsModalLabel">Available Coupons</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% if available_coupons %}
+                        <ul class="list-group">
+                            {% for coupon in available_coupons %}
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-1">{{ coupon.coupon_name }}</h5>
+                                            <p class="mb-1">Code: <strong>{{ coupon.coupon_code }}</strong></p>
+                                            <p class="mb-1">Discount: {{ coupon.discount }}%</p>
+                                            <p class="mb-1">Minimum Amount: ₹{{ coupon.minimum_amount }}</p>
+                                            <p class="mb-1">Expiry Date: {{ coupon.expiry_date }}</p>
+                                        </div>
+                                        <button class="btn btn-outline-primary apply-coupon-btn" data-code="{{ coupon.coupon_code }}">Apply Coupon</button>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No available coupons at the moment.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </main>
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
@@ -98,12 +142,92 @@
         document.querySelectorAll('.select-item:checked').forEach(checkbox => {
             newSubtotal += parseFloat(checkbox.dataset.price);
         });
-        const formattedTotal = newSubtotal.toFixed(2);
-        console.log(`Updated total: $${formattedTotal}`); // Debug line
-        document.getElementById('cart-subtotal').textContent = `$${formattedTotal}`;
-        document.getElementById('cart-total').textContent = `$${formattedTotal}`;
+        const formattedSubtotal = newSubtotal.toFixed(2);
+        document.getElementById('cart-subtotal').textContent = `₹${formattedSubtotal}`;
+        
+        // Get the discount amount
+        const discountText = document.getElementById('cart-discount').textContent;
+        const discountAmount = parseFloat(discountText.replace('-₹', '')) || 0;
+        
+        // Calculate the new total
+        const newTotal = (newSubtotal - discountAmount).toFixed(2);
+        document.getElementById('cart-total').textContent = `₹${newTotal}`;
     }
+
+    function updateCheckoutURL() {
+        let selectedCartItemIds = [];
+        document.querySelectorAll('.select-item:checked').forEach(checkbox => {
+            selectedCartItemIds.push(checkbox.dataset.id);
+        });
+
+        const checkoutButton = document.getElementById('proceed-to-checkout');
+        checkoutButton.href = `{% url 'cart:checkout' %}?cart_items=` + selectedCartItemIds.join(',');
+    }
+
+    function updateItemAvailability(card) {
+        const stockElement = card.querySelector('.stock');
+        const stock = parseInt(card.dataset.variantStock);
+        const productActive = card.dataset.productActive === 'true';
+        const variantStatus = card.dataset.variantStatus === 'true';
+        const qtyButtons = card.querySelectorAll('.qty-btn');
+        const checkbox = card.querySelector('.select-item');
+
+        if (!productActive || !variantStatus) {
+            stockElement.textContent = 'Unavailable';
+            stockElement.classList.add('text-danger');
+            qtyButtons.forEach(btn => btn.disabled = true);
+            checkbox.disabled = true;
+            checkbox.checked = false;
+        } else if (stock <= 0) {
+            stockElement.textContent = 'Out of Stock';
+            stockElement.classList.add('text-danger');
+            qtyButtons.forEach(btn => btn.disabled = true);
+            checkbox.disabled = true;
+            checkbox.checked = false;
+        } else {
+            stockElement.textContent = `Stock left: ${stock}`;
+            stockElement.classList.remove('text-danger');
+            qtyButtons.forEach(btn => btn.disabled = false);
+            checkbox.disabled = false;
+        }
+    }
+
+    function applyCoupon() {
+        var couponCode = document.getElementById('coupon-code').value;
+        var cartTotal = parseFloat(document.getElementById('cart-subtotal').textContent.replace('₹', ''));
     
+        $.ajax({
+            url: "{% url 'coupon:apply-coupon' %}",
+            type: 'POST',
+            data: {
+                'coupon_code': couponCode,
+                'cart_total': cartTotal,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                var messageElement = document.getElementById('coupon-message');
+                if (response.success) {
+                    document.getElementById('cart-discount').textContent = '-₹' + response.discount_amount.toFixed(2);
+                    document.getElementById('cart-total').textContent = '₹' + response.cart_total.toFixed(2);
+                    messageElement.textContent = response.message;
+                    messageElement.className = 'text-success';
+                    document.getElementById('coupon-code').disabled = true;
+                    document.getElementById('apply-coupon-btn').disabled = true;
+                } else {
+                    messageElement.textContent = response.message;
+                    messageElement.className = 'text-danger';
+                }
+            },
+            error: function(xhr, errmsg, err) {
+                console.log(errmsg);
+                var messageElement = document.getElementById('coupon-message');
+                messageElement.textContent = 'An error occurred. Please try again.';
+                messageElement.className = 'text-danger';
+            }
+        });
+    }
+
+    // Event Listeners
     document.querySelectorAll('.remove-item').forEach(button => {
         button.addEventListener('click', function(event) {
             event.preventDefault();
@@ -123,7 +247,7 @@
             });
         });
     });
-    
+
     document.querySelectorAll('.qty-btn').forEach(button => {
         button.addEventListener('click', function(event) {
             event.preventDefault();
@@ -135,7 +259,7 @@
             const variantStatus = card.dataset.variantStatus === 'true';
             let currentValue = parseInt(input.value);
             let newValue;
-    
+
             if (!productActive || !variantStatus) {
                 Swal.fire({
                     title: 'Unavailable',
@@ -145,7 +269,7 @@
                 });
                 return;
             }
-    
+
             if (stock <= 0) {
                 Swal.fire({
                     title: 'Out of Stock',
@@ -155,7 +279,7 @@
                 });
                 return;
             }
-    
+
             if (this.dataset.action === 'increase') {
                 if (currentValue < Math.min(5, stock)) {
                     newValue = currentValue + 1;
@@ -173,9 +297,9 @@
             } else {
                 newValue = currentValue;
             }
-    
+
             input.value = newValue;
-    
+
             const itemId = this.dataset.id;
             $.ajax({
                 url: '{% url "cart:update_cart_quantity" %}',
@@ -187,13 +311,10 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        card.querySelector('.h5.mb-0').textContent = `$${response.item_sub_total}`;
-                        
+                        card.querySelector('.h5.mb-0').textContent = `₹${response.item_sub_total}`;
                         const checkbox = card.querySelector('.select-item');
                         checkbox.dataset.price = response.item_sub_total;
-                        
                         updateItemAvailability(card);
-                        
                         if (checkbox.checked) {
                             updateCartTotal();
                         }
@@ -219,59 +340,31 @@
             });
         });
     });
-    
+
     document.querySelectorAll('.select-item').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             updateCartTotal();
             updateCheckoutURL();
         });
     });
-    
-    function updateCheckoutURL() {
-        let selectedCartItemIds = [];
-        document.querySelectorAll('.select-item:checked').forEach(checkbox => {
-            selectedCartItemIds.push(checkbox.dataset.id);
+
+    document.getElementById('coupon-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        applyCoupon();
+    });
+
+    document.querySelectorAll('.apply-coupon-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const couponCode = this.dataset.code;
+            document.getElementById('coupon-code').value = couponCode;
+            applyCoupon();
+            $('#couponsModal').modal('hide');
         });
-    
-        const checkoutButton = document.getElementById('proceed-to-checkout');
-        checkoutButton.href = `{% url 'cart:checkout' %}?cart_items=` + selectedCartItemIds.join(',');
-    }
-    
-    function updateItemAvailability(card) {
-        const stockElement = card.querySelector('.stock');
-        const stock = parseInt(card.dataset.variantStock);
-        const productActive = card.dataset.productActive === 'true';
-        const variantStatus = card.dataset.variantStatus === 'true';
-        const qtyButtons = card.querySelectorAll('.qty-btn');
-        const checkbox = card.querySelector('.select-item');
-    
-        if (!productActive || !variantStatus) {
-            stockElement.textContent = 'Unavailable';
-            stockElement.classList.add('text-danger');
-            qtyButtons.forEach(btn => btn.disabled = true);
-            checkbox.disabled = true;
-            checkbox.checked = false;
-        } else if (stock <= 0) {
-            stockElement.textContent = 'Out of Stock';
-            stockElement.classList.add('text-danger');
-            qtyButtons.forEach(btn => btn.disabled = true);
-            checkbox.disabled = true;
-            checkbox.checked = false;
-        } else {
-            stockElement.textContent = `Stock left: ${stock}`;
-            stockElement.classList.remove('text-danger');
-            qtyButtons.forEach(btn => btn.disabled = false);
-            checkbox.disabled = false;
-        }
-    }
-    
-    // Call this function for each card on page load
+    });
+
+    // Initial calls
     document.querySelectorAll('.card').forEach(updateItemAvailability);
-    
-    // Initial calls to set up the page
     updateCartTotal();
     updateCheckoutURL();
-    
 </script>
-
 {% endblock %}

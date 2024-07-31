@@ -12,7 +12,7 @@ from django.db.models import Avg, Count, Sum, Prefetch
 from django.db.models.functions import Lower
 from django.http import JsonResponse
 from django.template.loader import render_to_string
-
+from userpanel.models import Wishlist
 
 
 
@@ -22,12 +22,12 @@ from django.template.loader import render_to_string
 @admin_required
 def list_product(request):
     products = Products.objects.all().order_by('-created_at') 
-    return render(request, 'admin_side/list_product.html', {'products': products})
+    return render(request, 'admin_side/product/list_product.html', {'products': products})
 
 def product_detail(request, product_id):
     products = get_object_or_404(Products, id=product_id) 
     images = Product_images.objects.filter(product=products)
-    return render(request, 'admin_side/product_detail.html', {'products': products, 'images': images})
+    return render(request, 'admin_side/product/product_detail.html', {'products': products, 'images': images})
 
 @admin_required
 def create_product(request):
@@ -62,7 +62,7 @@ def create_product(request):
 
     categories = Category.objects.all()
     brands = Brand.objects.all()
-    return render(request, 'admin_side/create_product.html', {'categories': categories, 'brands': brands})
+    return render(request, 'admin_side/product/create_product.html', {'categories': categories, 'brands': brands})
 
 @admin_required
 def edit_product(request, product_id):
@@ -88,7 +88,7 @@ def edit_product(request, product_id):
 
     categories = Category.objects.all()
     brands = Brand.objects.all()
-    return render(request, 'admin_side/edit_product.html', {'product': product, 'categories': categories, 'brands': brands})
+    return render(request, 'admin_side/product/edit_product.html', {'product': product, 'categories': categories, 'brands': brands})
 
 
 @admin_required
@@ -114,7 +114,7 @@ def add_images(request, product_id):
 
         return redirect('product:product-detail',product_id=product_id)
 
-    return render(request, 'admin_side/add_images.html', {'product': product})
+    return render(request, 'admin_side/product/add_images.html', {'product': product})
 
 
 @admin_required
@@ -144,7 +144,7 @@ def add_variant(request, product_id):
 
         return redirect('product:add-variant-image', product_variant_id=variant.id)  
 
-    return render(request, 'admin_side/add_variant.html', {'product': product, 'variants': variants})
+    return render(request, 'admin_side/variant/add_variant.html', {'product': product, 'variants': variants})
 
 
 def add_variant_image(request, product_variant_id):
@@ -160,7 +160,7 @@ def add_variant_image(request, product_variant_id):
         
         return HttpResponse("Invalid data", status=400)
 
-    return render(request, 'admin_side/add_variant_image.html', {'product_variant': product_variant})
+    return render(request, 'admin_side/variant/add_variant_image.html', {'product_variant': product_variant})
 
 
 def delete_image(request, image_id):
@@ -182,7 +182,7 @@ def variant_detail(request, product_id):
         'product': product,
         'variants': variants,
     }
-    return render(request, 'admin_side/variant_detail.html', context)
+    return render(request, 'admin_side/variant/variant_detail.html', context)
 
 @admin_required
 def variant_status(request, variant_id):
@@ -214,9 +214,10 @@ def edit_variant(request, variant_id):
         variant.save()
         return redirect('product:variant-detail', variant.product.id)
     
-    return render(request, 'admin_side/edit_variant.html', {'variant': variant,'variant_images': variant_images,})
+    return render(request, 'admin_side/variant/edit_variant.html', {'variant': variant,'variant_images': variant_images,})
 
 
+# user side product fuctions
 
 def product_detail_page(request, product_id):
     product = get_object_or_404(Products, id=product_id)
@@ -241,6 +242,10 @@ def product_detail_page(request, product_id):
     reviews = Review.objects.filter(product=product).order_by('-created_at')
     average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
 
+    user_wishlist = []
+    if request.user.is_authenticated:
+        user_wishlist = Wishlist.objects.filter(user=request.user).values_list('variant_id', flat=True)
+
     context = {
         'product': product,
         'variants': variants,
@@ -248,9 +253,10 @@ def product_detail_page(request, product_id):
         'variant_images': variant_images,
         'reviews': reviews,
         'average_rating': average_rating,
+        'user_wishlist': user_wishlist,
     }
 
-    return render(request, 'user_side/product_details2.html', context)
+    return render(request, 'user_side/product/product_details2.html', context)
 
 
 def get_variant_sizes(request):
@@ -296,14 +302,17 @@ def shop_page(request):
     brands = Brand.objects.all()
     categories = Category.objects.all()
     
-    # Start with all products
+
     products = Products.objects.filter(is_active=True)
-    
-    # Filters
+    search_query = request.GET.get('search_query', '')
     selected_categories = request.GET.getlist('category')
     selected_brands = request.GET.getlist('brand')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
+
+    if search_query:
+        products = products.filter(product_name__icontains=search_query)
+    
     
     if selected_categories:
         products = products.filter(product_category__id__in=selected_categories)
@@ -316,8 +325,7 @@ def shop_page(request):
     
     if max_price:
         products = products.filter(price__lte=max_price)
-    
-    # Sorting
+
     sort_by = request.GET.get('sort', 'featured')
     if sort_by == 'price_low_high':
         products = products.order_by('price')
@@ -337,8 +345,7 @@ def shop_page(request):
         products = products.annotate(
             total_stock=Sum('product_variant__variant_stock')
         ).order_by('-total_stock')
-    
-    # Prefetch related data to optimize queries
+
     products = products.prefetch_related(
         Prefetch('product_variant_set', 
                  queryset=Product_Variant.objects.filter(variant_status=True),
@@ -346,7 +353,6 @@ def shop_page(request):
         'product_variant_set__product_variant_images_set'
     )
 
-    # Attach image URLs to products
     for product in products:
         if product.active_variants:
             variant = product.active_variants[0]
@@ -356,11 +362,11 @@ def shop_page(request):
             elif product.thumbnail:
                 product.image_url = product.thumbnail.url
             else:
-                product.image_url = None  # or a default image URL
+                product.image_url = None 
         elif product.thumbnail:
             product.image_url = product.thumbnail.url
         else:
-            product.image_url = None  # or a default image URL
+            product.image_url = None  
 
     context = {
         'brands': brands,
@@ -371,6 +377,7 @@ def shop_page(request):
         'selected_brands': selected_brands,
         'min_price': min_price,
         'max_price': max_price,
+        'search_query': search_query,
     }
     
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':

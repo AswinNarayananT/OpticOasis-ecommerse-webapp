@@ -1,23 +1,55 @@
 {% load static %}
 
 {% for product in products %}
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            {% if product.image_url %}
-                <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.product_name }}">
-            {% else %}
-                <img src="{% static 'path/to/default/image.jpg' %}" class="card-img-top" alt="{{ product.product_name }}">
-            {% endif %}
-            <div class="card-body">
-                <h5 class="card-title">{{ product.product_name }}</h5>
-                <p class="card-text">Price: ${{ product.price }}</p>
-                <p class="card-text">Brand: {{ product.product_brand.brand_name }}</p>
-                <p class="card-text">Category: {{ product.product_category.name }}</p>
-                {% if product.offer_price %}
-                    <p class="card-text text-danger">Offer Price: ${{ product.offer_price }}</p>
+    <div class="col-lg-4 col-md-4 col-sm-6 col-12">
+        <div class="product-cart-wrap mb-30">
+            <div class="product-img-action-wrap">
+                <div class="product-img product-img-zoom">
+                    <a href="{% url 'product:product-detail-page' product.id %}">
+                        {% with product.product_variant_set.first as variant %}
+                            {% if variant and variant.product_variant_images_set.first %}
+                                <img class="default-img" src="{{ variant.product_variant_images_set.first.images.url }}" alt="{{ product.product_name }}">
+                            {% elif product.thumbnail %}
+                                <img class="default-img" src="{{ product.thumbnail.url }}" alt="{{ product.product_name }}">
+                            {% else %}
+                                <img class="default-img" src="{% static 'images/No_Image-1024.webp' %}" alt="{{ product.product_name }}">
+                            {% endif %}
+                        {% endwith %}
+                    </a>
+                </div>
+                <div class="product-action-1">
+                    <a aria-label="Add To Wishlist" class="action-btn hover-up" href="#"><i class="fi-rs-heart"></i></a>
+                </div>
+            </div>
+            <div class="product-content-wrap">
+                <div class="product-category">
+                    <a href="#">{{ product.product_brand.brand_name }}</a>
+                </div>
+                <h5><a href="{% url 'product:product-detail-page' product.id %}">{{ product.product_name }}</a></h5>
+                <div class="product-rate-cover">
+                    <div class="product-rate d-inline-block">
+                        <div class="product-rating" style="width: {{ product.average_rating|floatformat:0 }}%"></div>
+                    </div>
+                    <span class="font-small ml-5 text-muted">({{ product.reviews.count }})</span>
+                </div>
+                <div class="product-price">
+                    {% if product.offer_price < product.price %}
+                        <span>₹ {{ product.offer_price }}</span>
+                        <span class="old-price">₹ {{ product.price }}</span>
+                    {% else %}
+                        <span>₹ {{ product.price }}</span>
+                    {% endif %}
+                </div>
+                {% if product.percentage_discount > 0 %}
+                    <div class="product-badge">
+                        <span class="best">Discount:-{{ product.percentage_discount }}%</span>
+                    </div>
                 {% endif %}
-                <a href="#" class="btn btn-primary">View Details</a>
             </div>
         </div>
+    </div>
+{% empty %}
+    <div class="col-12">
+        <p>No Products Found Yet</p>
     </div>
 {% endfor %}

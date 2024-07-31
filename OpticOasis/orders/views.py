@@ -8,15 +8,21 @@ from cart.models import CartItem, Cart
 from userpanel.models import UserAddress
 from django.db import transaction
 from django.http import JsonResponse
+import razorpay
 import uuid
+from django.urls import reverse
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+from django.core.paginator import Paginator
 
 # Create your views here.
 
 def generate_unique_order_id():
     return str(uuid.uuid4())
 
-    
 
+@csrf_exempt
 def order_placed(request):
     if request.method == "POST":
         try:
@@ -28,12 +34,12 @@ def order_placed(request):
             if not cart_item_ids:
                 messages.error(request, "Cart is empty.")
                 return redirect('cart:checkout')
-            
+
             cart_item_ids = cart_item_ids.split(',')
             cart_items = CartItem.objects.filter(id__in=cart_item_ids, cart__user=user)
             if not cart_items.exists():
                 messages.error(request, "No valid items found. Please try again.")
-                return redirect('cart:cart-view')  
+                return redirect('cart:cart-view')
 
             for item in cart_items:
                 if item.quantity > item.variant.variant_stock:
@@ -43,51 +49,101 @@ def order_placed(request):
                     messages.error(request, f"{item.product.product_name} is no longer available.")
                     return redirect('cart:cart-view')
 
-            
             address = UserAddress.objects.get(id=selected_address_id)
-            
-            total_amount = sum(CartItem.objects.get(id=item_id).sub_total() for item_id in cart_item_ids)
-            
+            total_amount = sum(item.sub_total() for item in cart_items)
+
             order = OrderMain.objects.create(
                 user=user,
                 address=address,
                 total_amount=total_amount,
                 payment_option=payment_method,
-                order_id=generate_unique_order_id(), 
-                payment_status=False,  
+                order_id=generate_unique_order_id(),
+                payment_status=False,
             )
 
-            
-            for item_id in cart_item_ids:
-                cart_item = CartItem.objects.get(id=item_id)
+            for item in cart_items:
                 OrderSub.objects.create(
                     user=user,
                     main_order=order,
-                    variant=cart_item.variant,
-                    quantity=cart_item.quantity,
+                    variant=item.variant,
+                    quantity=item.quantity,
+                    price=item.product.offer_price,
                 )
-                item.variant.variant_stock -= item.quantity
-                item.variant.save()
+                variant = item.variant
+                variant.variant_stock -= item.quantity
+                variant.save()
                 item.delete()
 
-            
-            request.session['cart'] = []
-
-            return redirect('orders:order-confirmation', order_id=order.id)
+            if payment_method == 'razorpay':
+                client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+                razorpay_order = client.order.create({
+                    'amount': int(total_amount * 100),  
+                    'currency': 'INR',
+                    'payment_capture': '1'
+                })
+                order.payment_id = razorpay_order['id']
+                order.save()
+                return render(request, 'user_side/order/razorpay_payment.html', {
+                    'order': order,
+                    'razorpay_order_id': razorpay_order['id'],
+                    'razorpay_merchant_key': settings.RAZORPAY_KEY_ID,
+                    'callback_url': request.build_absolute_uri(reverse('orders:razorpay-callback'))
+                })
+            else:
+                return redirect('orders:order-confirmation', order_id=order.id)
+        except UserAddress.DoesNotExist:
+            messages.error(request, "Selected address does not exist.")
+            return redirect('cart:checkout')
         except Exception as e:
             messages.error(request, f"An error occurred: {str(e)}")
             return redirect('cart:checkout')
     else:
         return redirect('cart:checkout')
 
-    
+@csrf_exempt
+def razorpay_callback(request):
+    if request.method == "POST":
+        payment_id = request.POST.get('razorpay_payment_id', '')
+        razorpay_order_id = request.POST.get('razorpay_order_id', '')
+        signature = request.POST.get('razorpay_signature', '')
+
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+        try:
+            order = OrderMain.objects.get(payment_id=razorpay_order_id)
+            params_dict = {
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': payment_id,
+                'razorpay_signature': signature
+            }
+            client.utility.verify_payment_signature(params_dict)
+
+            order.payment_status = True
+            order.order_status = 'Confirmed'
+            order.save()
+
+            messages.success(request, "Payment successful and order confirmed!")
+            return redirect('orders:order-confirmation', order_id=order.id)
+        except OrderMain.DoesNotExist:
+            messages.error(request, "Order does not exist.")
+            return redirect('orders:order-failure',order_id=order.id)
+        except razorpay.errors.SignatureVerificationError:
+            messages.error(request, "Payment verification failed.")
+            return redirect('orders:order-failure',order_id=order.id)
+    else:
+        return HttpResponse("Invalid request method.", status=400)
 
 
+def order_failure(request, order_id):
+    order = get_object_or_404(OrderMain, id=order_id)
+    context = {
+        'order': order,
+    }
+    return render(request, 'user_side/order/order_failure.html', context)    
 
 def order_confirmation(request, order_id):
     order = get_object_or_404(OrderMain, id=order_id)
-    return render(request, 'user_side/cart/order_placed.html', {'order': order})
-
+    return render(request, 'user_side/order/order_placed.html', {'order': order})
 
 
 def add_address(request):
@@ -132,98 +188,48 @@ def add_address(request):
 
 
 
-# @login_required
-# def order_placed(request):
-#     if request.method == 'POST':
-#         current_user = request.user
-#         cart_item_ids = request.POST.get('cart_item_ids', '').split(',')
-#         print(cart_item_ids)
-#         cart_items = CartItem.objects.filter(id__in=cart_item_ids, cart__user=current_user)
 
-#         if not cart_items.exists():
-#             messages.error(request, 'No items in cart')
-#             return redirect('cart:checkout')
+def admin_order_list(request):
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', 'Show all')
+    items_per_page = request.GET.get('items_per_page', 20)
 
-#         address_id = request.POST.get('selected_address')
-#         try:
-#             address = UserAddress.objects.get(id=address_id, user=current_user)
-#         except UserAddress.DoesNotExist:
-#             messages.error(request, 'Invalid address selected')
-#             return redirect('cart:checkout')
 
-#         payment_option = request.POST.get('payment_method')
+    orders = OrderMain.objects.all().order_by('-date')
+    if search_query:
+        orders = orders.filter(order_id__icontains=search_query)
+    if status_filter != 'Show all':
+        orders = orders.filter(order_status=status_filter)
 
-#         if not payment_option:
-#             messages.error(request, 'Select Payment Option')
-#             return redirect('cart:checkout')
 
-#         # Validate cart items
-#         for cart_item in cart_items:
-#             if not cart_item.variant.variant_status:
-#                 messages.error(request, f'Select variant for {cart_item.product.product_name}')
-#                 return redirect('cart:checkout')
+    paginator = Paginator(orders, items_per_page)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
-#             if cart_item.variant.variant_stock < cart_item.quantity:
-#                 messages.error(request, f'{cart_item.product.product_name} is out of stock')
-#                 return redirect('cart:checkout')
+    context = {
+        'orders': page_obj,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'items_per_page': items_per_page,
+        'ORDER_STATUS_CHOICES': OrderMain.ORDER_STATUS_CHOICES,
+    }
+    return render(request, 'admin_side/order/order_list.html', context)
 
-#             if not cart_item.product.is_active:
-#                 messages.error(request, f'{cart_item.product.product_name} is currently inactive')
-#                 return redirect('cart:checkout')
 
-#         try:
-#             with transaction.atomic():
-#                 # Generate order ID and payment ID
-#                 current_date_time = datetime.now()
-#                 formatted_date_time = current_date_time.strftime("%H%m%S%Y")
-#                 unique = get_random_string(length=4, allowed_chars='1234567890')
-#                 order_id = f"{current_user.id}{formatted_date_time}{unique}"
 
-#                 formatted_date_time = current_date_time.strftime("%m%Y%H%S")
-#                 unique = get_random_string(length=2, allowed_chars='1234567890')
-#                 payment_id = f"{unique}{current_user.id}{formatted_date_time}"
+def admin_orders_details(request, oid):
+    order = get_object_or_404(OrderMain, pk=oid)
+    order_items = OrderSub.objects.filter(main_order=order)
+    return render(request, 'admin_side/order/order_detail.html', {'orders': order, 'order_sub': order_items})
 
-#                 # Create main order
-#                 order_main = OrderMain.objects.create(
-#                     user=current_user,
-#                     address=address,
-#                     total_amount=sum(item.sub_total() for item in cart_items),
-#                     payment_option=payment_option,
-#                     order_id=order_id,
-#                     payment_id=payment_id
-#                 )
-
-#                 # Create order sub items and update stock
-#                 for cart_item in cart_items:
-#                     OrderSub.objects.create(
-#                         user=current_user,
-#                         main_order=order_main,
-#                         variant=cart_item.variant,
-#                         quantity=cart_item.quantity,
-#                     )
-
-#                     variant = cart_item.variant
-#                     variant.variant_stock -= cart_item.quantity
-#                     variant.save()
-
-#                 # Clear the cart
-#                 cart_items.delete()
-
-#                 # Calculate estimated delivery date
-#                 current_date_time = datetime.now()
-#                 future_date_time = current_date_time + timedelta(days=5)
-#                 formatted_future_date = future_date_time.strftime("Arriving By %a, %b %d %Y")
-
-#                 messages.success(request, 'Order placed successfully!')
-#                 return render(request, 'user_side/cart/order_placed.html', {
-#                     'main_order': order_main,
-#                     'formatted_future_date': formatted_future_date
-#                 })
-
-#         except Exception as e:
-#             messages.error(request, f'An error occurred while placing your order: {str(e)}')
-#             return redirect('cart:checkout')
-
-#     else:
-#         return redirect('cart:checkout')
-
+def change_order_status(request, order_id):
+    order = get_object_or_404(OrderMain, id=order_id)
+    if request.method == 'POST':
+        new_status = request.POST.get('order_status')
+        if order.order_status != 'Canceled':
+            order.order_status = new_status
+            order.save()
+            messages.success(request, 'Order status updated successfully.')
+        else:
+            messages.error(request, 'Order status cannot be changed as it has been canceled by the user.')
+    return redirect('orders:admin-orders-details', oid=order.id)

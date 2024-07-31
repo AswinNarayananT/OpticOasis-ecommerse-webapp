@@ -29,7 +29,7 @@ def home_page(request):
     brands =Brand.objects.all()
     categorys=Category.objects.all()
     products =Products.objects.filter(is_active=True)
-    return render(request,'user_side/index-3.html',{'brands':brands,'categorys':categorys,'products':products})
+    return render(request,'user_side/account/index-3.html',{'brands':brands,'categorys':categorys,'products':products})
 
 def register(request):
     if request.method == 'POST':
@@ -52,7 +52,7 @@ def register(request):
             return redirect('verify_otp')
     else:
         form = UserRegistrationForm()
-    return render(request, 'user_side/user_register.html', {'form': form})
+    return render(request, 'user_side/account/user_register.html', {'form': form})
 
 @csrf_protect
 def verify_otp(request):
@@ -96,7 +96,7 @@ def verify_otp(request):
         else:
             messages.error(request, 'OTP generation time not found. Please register again.')
 
-    return render(request, 'user_side/verify_otp.html')
+    return render(request, 'user_side/account/verify_otp.html')
 
 def resend_otp(request):
     user_data = request.session.get('user_data')
@@ -136,14 +136,11 @@ def login_view(request):
             messages.error(request, "Invalid email or password. Please try again.")
     else:
         form = EmailAuthenticationForm()
-    return render(request, 'user_side/user_login.html', {'form': form})
+    return render(request, 'user_side/account/user_login.html', {'form': form})
 
 def logout_view(request):
     logout(request)
     messages.success(request, "You have successfully logged out.")
     return redirect('home_page')
 
-
-def demo(request):
-    return render(request,'user_side/shop-product-left.html')
         

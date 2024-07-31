@@ -16,14 +16,15 @@
                 </div>
             </div>
             <div class="list-group mt-4 shadow-sm">
-                <a href="{}" class="list-group-item list-group-item-action active" aria-current="true">
+                <a href="{% url 'userpanel:user-profile' %}" class="list-group-item list-group-item-action active" aria-current="true">
                     Dashboard
                 </a>
-                <a href="#" class="list-group-item list-group-item-action">Orders</a>
-                <a href="#" class="list-group-item list-group-item-action">Wishlist</a>
+                <a href="{% url 'userpanel:order-list' %}" class="list-group-item list-group-item-action">Orders</a>
                 <a href="{% url 'userpanel:add-address' %}" class="list-group-item list-group-item-action">Your Address</a>
-                <a href="#" class="list-group-item list-group-item-action">Reviews</a>
-                <a href="#" class="list-group-item list-group-item-action">Settings</a>
+                <a href="{% url 'userpanel:password-change' %}" class="list-group-item list-group-item-action">Change Password</a>
+                <a href="{% url 'userpanel:wallet-view' %}" class="list-group-item list-group-item-action">Wallet</a>
+                {% comment %} <a href="#" class="list-group-item list-group-item-action">Reviews</a>
+                <a href="#" class="list-group-item list-group-item-action">Settings</a> {% endcomment %}
             </div>
         </div>
         <div class="col-md-8">

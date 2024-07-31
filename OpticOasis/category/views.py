@@ -10,7 +10,7 @@ from django.db import IntegrityError
 @admin_required
 def list_category(request):
     categories = Category.objects.all().order_by('id')
-    return render(request,'admin_side/list_category.html',{'categories':categories})
+    return render(request,'admin_side/category/list_category.html',{'categories':categories})
 
 @admin_required
 def create_category(request):
@@ -27,7 +27,7 @@ def create_category(request):
             messages.error(request, f'Failed to create category: {str(e)}')
             return render(request, 'admin_side/create_category.html')
 
-    return render(request, 'admin_side/create_category.html')
+    return render(request, 'admin_side/category/create_category.html')
 
 
 @admin_required
@@ -43,7 +43,7 @@ def edit_category(request, category_id):
             category.slug = slug
             category.save()
             return redirect('category:list-category')
-    return render(request, 'admin_side/edit_category.html', {'category': category})
+    return render(request, 'admin_side/category/edit_category.html', {'category': category})
 
 @admin_required
 def category_is_available(request, category_id):

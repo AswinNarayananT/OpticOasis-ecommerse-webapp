@@ -18,6 +18,37 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.6/cropper.css" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{% static 'user_side/assets/css/main.css ' %}">   
+    <style>
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background-color: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+        .logo-icon span {
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .logo-text {
+            color: #000;
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body>
@@ -26,16 +57,17 @@
         <div class="container">
             <div class="header-wrap d-flex justify-content-between align-items-center">
                 <div class="header-left logo logo-width-1">
-                    <h3 class="text-black"><a href="{% url 'home_page' %}">OPTICOASIS</a></h3>
+                    <h3 class="text-black logo-text"><a href="{% url 'home_page' %}">OPTIC OASIS</a></h3>
                 </div>
                 <div class="header-right d-flex align-items-center">
                     <div class="search-style-2 me-3">
-                        <form action="#">
-                            <input type="text" placeholder="Search for items...">
+                        <form action="{% url 'product:shop-page' %}" method="GET">
+                            <input type="text" name="search_query" placeholder="Search for items..." value="{{ request.GET.search_query }}">
+                            <button type="submit">Search</button>
                         </form>
                     </div>
                     <div class="header-action-right d-flex align-items-center">
-                        <a href="#" class="me-3 position-relative">
+                        <a href="{% url 'userpanel:wishlist' %}" class="me-3 position-relative">
                             <i class="bi bi-heart fs-4"></i>
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
                                 2

@@ -1,0 +1,93 @@
+{% extends 'admin_side/base.html' %}
+{% load static %}
+
+{% block title %}
+<title>{% if form.instance.pk %}Edit Coupon{% else %}Create Coupon{% endif %}</title>
+{% endblock title %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h3 class="mb-0 text-center text-dark">{% if form.instance.pk %}Edit Coupon{% else %}Create Coupon{% endif %}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% if form.instance.pk %}{% url 'coupon:edit-coupon' form.instance.pk %}{% else %}{% url 'coupon:create-coupon' %}{% endif %}">
+                        {% csrf_token %}
+                        <div class="mb-3 row">
+                            <label for="id_coupon_name" class="col-sm-3 col-form-label">Coupon Name</label>
+                            <div class="col-sm-9">
+                                {{ form.coupon_name }}
+                                {% if form.coupon_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.coupon_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="id_coupon_code" class="col-sm-3 col-form-label">Coupon Code</label>
+                            <div class="col-sm-9">
+                                {{ form.coupon_code }}
+                                {% if form.coupon_code.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.coupon_code.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="id_minimum_amount" class="col-sm-3 col-form-label">Minimum Amount</label>
+                            <div class="col-sm-9">
+                                {{ form.minimum_amount }}
+                                {% if form.minimum_amount.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.minimum_amount.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="id_discount" class="col-sm-3 col-form-label">Discount</label>
+                            <div class="col-sm-9">
+                                {{ form.discount }}
+                                {% if form.discount.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.discount.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="id_maximum_amount" class="col-sm-3 col-form-label">Maximum Amount</label>
+                            <div class="col-sm-9">
+                                {{ form.maximum_amount }}
+                                {% if form.maximum_amount.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.maximum_amount.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label for="id_expiry_date" class="col-sm-3 col-form-label">Expiry Date</label>
+                            <div class="col-sm-9">
+                                {{ form.expiry_date }}
+                                {% if form.expiry_date.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.expiry_date.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <div class="col-sm-9 offset-sm-3">
+                                <div class="form-check">
+                                    {{ form.status }}
+                                    <label class="form-check-label" for="id_status">Active</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-sm-9 offset-sm-3">
+                                <button type="submit" class="btn btn-primary me-2">{% if form.instance.pk %}Update{% else %}Create{% endif %} Coupon</button>
+                                <a href="{% url 'coupon:list-coupon' %}" class="btn btn-secondary">Cancel</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

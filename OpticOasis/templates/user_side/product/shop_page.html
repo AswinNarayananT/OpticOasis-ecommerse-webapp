@@ -26,9 +26,10 @@
                                 <div class="custome-checkbox">
                                     {% for category in categories %}
                                         <div>
+                                            <p>{{ category.name }}</p>
                                             <input class="form-check-input filter-checkbox" type="checkbox" name="category" id="category{{ category.id }}" value="{{ category.id }}"
                                                 {% if category.id|stringformat:"s" in selected_categories %}checked{% endif %}>
-                                            <label class="form-check-label" for="category{{ category.id }}"><span>{{ category.name }}</span></label>
+                                            <label class="form-check-label" for="category{{ category.id }}"><span>{{ category.category_name }}</span></label>
                                         </div>
                                     {% endfor %}
                                 </div>
@@ -71,7 +72,7 @@
                                         <div>
                                             <input class="form-check-input filter-checkbox" type="checkbox" name="brand" id="brand{{ brand.id }}" value="{{ brand.id }}"
                                                 {% if brand.id|stringformat:"s" in selected_brands %}checked{% endif %}>
-                                            <label class="form-check-label" for="brand{{ brand.id }}"><span>{{ brand.name }}</span></label>
+                                            <label class="form-check-label" for="brand{{ brand.id }}"><span>{{ brand.brand_name }}</span></label>
                                         </div>
                                     {% endfor %}
                                 </div>
@@ -126,7 +127,7 @@
                                 </div>
                                 {% if product.percentage_discount > 0 %}
                                     <div class="product-badge">
-                                        <span class="best">-{{ product.percentage_discount }}%</span>
+                                        <span class="best">Discount:-{{ product.percentage_discount }}%</span>
                                     </div>
                                 {% endif %}
                             </div>

@@ -12,44 +12,56 @@
                     </div>
                     <h5 class="card-title">{{ user.get_full_name }}</h5>
                     <p class="card-text text-muted">{{ user.email }}</p>
-                    <button class="btn btn-outline-secondary btn-sm mt-2">Edit Profile</button>
+                    <a href="{% url 'userpanel:edit-profile' %}" class="btn btn-outline-secondary btn-sm mt-2">Edit Profile</a>
+                    <a href="{% url 'userpanel:password-change' %}" class="btn btn-outline-secondary btn-sm mt-2">Change Password</a>
                 </div>
             </div>
             <div class="list-group mt-4 shadow-sm">
                 <a href="{% url 'userpanel:user-profile' %}" class="list-group-item list-group-item-action active" aria-current="true">
                     Dashboard
                 </a>
-                <a href="#" class="list-group-item list-group-item-action">Orders</a>
-                <a href="#" class="list-group-item list-group-item-action">Wishlist</a>
+                <a href="{% url 'userpanel:order-list' %}" class="list-group-item list-group-item-action">Orders</a>
                 <a href="{% url 'userpanel:add-address' %}" class="list-group-item list-group-item-action">Your Address</a>
-                <a href="#" class="list-group-item list-group-item-action">Reviews</a>
-                <a href="#" class="list-group-item list-group-item-action">Settings</a>
+                <a href="{% url 'userpanel:password-change' %}" class="list-group-item list-group-item-action">Change Password</a>
+                <a href="{% url 'userpanel:wallet-view' %}" class="list-group-item list-group-item-action">Wallet</a>
+                {% comment %} <a href="#" class="list-group-item list-group-item-action">Reviews</a>
+                <a href="#" class="list-group-item list-group-item-action">Settings</a> {% endcomment %}
             </div>
         </div>
         <div class="col-md-8">
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-body">
-                    <h4 class="card-title mb-4">Profile Information</h4>
+                    {% comment %} <h4 class="card-title mb-4">Personal Information <a href="" class="btn btn-outline-secondary btn-sm float-end">Edit</a></h4> {% endcomment %}
                     <div class="row g-3">
-                        <div class="col-sm-6">
+                        <div class="col-md-6">
                             <label class="form-label">First Name</label>
                             <input type="text" class="form-control" value="{{ user.first_name }}" readonly>
                         </div>
-                        <div class="col-sm-6">
+                        <div class="col-md-6">
                             <label class="form-label">Last Name</label>
                             <input type="text" class="form-control" value="{{ user.last_name }}" readonly>
                         </div>
-                        <div class="col-sm-6">
-                            <label class="form-label">Email</label>
+                        <div class="col-md-6">
+                            <label class="form-label">Email Address</label>
                             <input type="email" class="form-control" value="{{ user.email }}" readonly>
                         </div>
-                        <div class="col-sm-6">
-                            <label class="form-label">Phone</label>
+                        <div class="col-md-6">
+                            <label class="form-label">Mobile Number</label>
                             <input type="tel" class="form-control" value="{{ user.phone_number }}" readonly>
                         </div>
+                        {% comment %} <div class="col-md-6">
+                            <label class="form-label">Joined On</label>
+                            <input type="text" class="form-control" value="{{ user.date_joined|date:"F d, Y" }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Account Status</label>
+                            <input type="text" class="form-control" value="{{ user.is_active|yesno:'Active,Inactive' }}" readonly>
+                        </div> {% endcomment %}
                     </div>
                 </div>
             </div>
+            
+            <!-- You can add more sections here, such as order history, etc. -->
         </div>
     </div>
 </main>
