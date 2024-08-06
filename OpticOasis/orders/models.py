@@ -40,3 +40,18 @@ class OrderSub(models.Model):
     
     def total_cost(self):
         return self.quantity * self.price
+    
+
+
+class ReturnRequest(models.Model):
+    RETURN_STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    ]
+    order_main = models.ForeignKey(OrderMain, on_delete=models.CASCADE)
+    order_sub = models.ForeignKey(OrderSub, on_delete=models.CASCADE, null=True, blank=True)
+    reason = models.TextField()
+    status = models.CharField(max_length=10, choices=RETURN_STATUS_CHOICES, default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

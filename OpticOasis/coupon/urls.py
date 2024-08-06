@@ -10,6 +10,7 @@ urlpatterns = [
     path('edit/<int:pk>/', views.edit_coupon, name='edit-coupon'),
     path('coupon-status/<int:pk>/', views.coupon_status, name='coupon-status'),
     path('apply-coupon/', views.apply_coupon, name='apply-coupon'),
+    path('remove-coupon/', views.remove_coupon, name='remove-coupon'),
  
 
 ]

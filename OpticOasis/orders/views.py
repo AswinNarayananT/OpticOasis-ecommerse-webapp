@@ -15,8 +15,60 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.core.paginator import Paginator
+from utils.decorators import admin_required
 
 # Create your views here.
+
+@admin_required
+def admin_order_list(request):
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', 'Show all')
+    items_per_page = request.GET.get('items_per_page', 20)
+
+
+    orders = OrderMain.objects.all().order_by('-date')
+    if search_query:
+        orders = orders.filter(order_id__icontains=search_query)
+    if status_filter != 'Show all':
+        orders = orders.filter(order_status=status_filter)
+
+
+    paginator = Paginator(orders, items_per_page)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'orders': page_obj,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'items_per_page': items_per_page,
+        'ORDER_STATUS_CHOICES': OrderMain.ORDER_STATUS_CHOICES,
+    }
+    return render(request, 'admin_side/order/order_list.html', context)
+
+
+@admin_required
+def admin_orders_details(request, oid):
+    order = get_object_or_404(OrderMain, pk=oid)
+    order_items = OrderSub.objects.filter(main_order=order)
+    return render(request, 'admin_side/order/order_detail.html', {'orders': order, 'order_sub': order_items})
+
+
+@admin_required
+def change_order_status(request, order_id):
+    order = get_object_or_404(OrderMain, id=order_id)
+    if request.method == 'POST':
+        new_status = request.POST.get('order_status')
+        if order.order_status != 'Canceled':
+            order.order_status = new_status
+            order.save()
+            messages.success(request, 'Order status updated successfully.')
+        else:
+            messages.error(request, 'Order status cannot be changed as it has been canceled by the user.')
+    return redirect('orders:admin-orders-details', oid=order.id)
+
+
+#user side order fuctions
 
 def generate_unique_order_id():
     return str(uuid.uuid4())
@@ -188,48 +240,3 @@ def add_address(request):
 
 
 
-
-def admin_order_list(request):
-    search_query = request.GET.get('search', '')
-    status_filter = request.GET.get('status', 'Show all')
-    items_per_page = request.GET.get('items_per_page', 20)
-
-
-    orders = OrderMain.objects.all().order_by('-date')
-    if search_query:
-        orders = orders.filter(order_id__icontains=search_query)
-    if status_filter != 'Show all':
-        orders = orders.filter(order_status=status_filter)
-
-
-    paginator = Paginator(orders, items_per_page)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    context = {
-        'orders': page_obj,
-        'search_query': search_query,
-        'status_filter': status_filter,
-        'items_per_page': items_per_page,
-        'ORDER_STATUS_CHOICES': OrderMain.ORDER_STATUS_CHOICES,
-    }
-    return render(request, 'admin_side/order/order_list.html', context)
-
-
-
-def admin_orders_details(request, oid):
-    order = get_object_or_404(OrderMain, pk=oid)
-    order_items = OrderSub.objects.filter(main_order=order)
-    return render(request, 'admin_side/order/order_detail.html', {'orders': order, 'order_sub': order_items})
-
-def change_order_status(request, order_id):
-    order = get_object_or_404(OrderMain, id=order_id)
-    if request.method == 'POST':
-        new_status = request.POST.get('order_status')
-        if order.order_status != 'Canceled':
-            order.order_status = new_status
-            order.save()
-            messages.success(request, 'Order status updated successfully.')
-        else:
-            messages.error(request, 'Order status cannot be changed as it has been canceled by the user.')
-    return redirect('orders:admin-orders-details', oid=order.id)

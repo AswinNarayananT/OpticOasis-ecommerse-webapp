@@ -16,6 +16,15 @@
                 <div class="card-body">
                     <form method="post" action="{% if form.instance.pk %}{% url 'coupon:edit-coupon' form.instance.pk %}{% else %}{% url 'coupon:create-coupon' %}{% endif %}">
                         {% csrf_token %}
+                        
+                        <!-- Render non-field errors -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Coupon Name -->
                         <div class="mb-3 row">
                             <label for="id_coupon_name" class="col-sm-3 col-form-label">Coupon Name</label>
                             <div class="col-sm-9">
@@ -25,6 +34,8 @@
                                 {% endif %}
                             </div>
                         </div>
+
+                        <!-- Coupon Code -->
                         <div class="mb-3 row">
                             <label for="id_coupon_code" class="col-sm-3 col-form-label">Coupon Code</label>
                             <div class="col-sm-9">
@@ -34,6 +45,8 @@
                                 {% endif %}
                             </div>
                         </div>
+
+                        <!-- Minimum Amount -->
                         <div class="mb-3 row">
                             <label for="id_minimum_amount" class="col-sm-3 col-form-label">Minimum Amount</label>
                             <div class="col-sm-9">
@@ -43,6 +56,8 @@
                                 {% endif %}
                             </div>
                         </div>
+
+                        <!-- Discount -->
                         <div class="mb-3 row">
                             <label for="id_discount" class="col-sm-3 col-form-label">Discount</label>
                             <div class="col-sm-9">
@@ -52,6 +67,8 @@
                                 {% endif %}
                             </div>
                         </div>
+
+                        <!-- Maximum Amount -->
                         <div class="mb-3 row">
                             <label for="id_maximum_amount" class="col-sm-3 col-form-label">Maximum Amount</label>
                             <div class="col-sm-9">
@@ -61,6 +78,8 @@
                                 {% endif %}
                             </div>
                         </div>
+
+                        <!-- Expiry Date -->
                         <div class="mb-3 row">
                             <label for="id_expiry_date" class="col-sm-3 col-form-label">Expiry Date</label>
                             <div class="col-sm-9">
@@ -70,20 +89,28 @@
                                 {% endif %}
                             </div>
                         </div>
+
+                        <!-- Status -->
                         <div class="mb-3 row">
                             <div class="col-sm-9 offset-sm-3">
                                 <div class="form-check">
                                     {{ form.status }}
                                     <label class="form-check-label" for="id_status">Active</label>
                                 </div>
+                                {% if form.status.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.status.errors }}</div>
+                                {% endif %}
                             </div>
                         </div>
+
+                        <!-- Submit and Cancel Buttons -->
                         <div class="row mt-4">
                             <div class="col-sm-9 offset-sm-3">
                                 <button type="submit" class="btn btn-primary me-2">{% if form.instance.pk %}Update{% else %}Create{% endif %} Coupon</button>
                                 <a href="{% url 'coupon:list-coupon' %}" class="btn btn-secondary">Cancel</a>
                             </div>
                         </div>
+
                     </form>
                 </div>
             </div>

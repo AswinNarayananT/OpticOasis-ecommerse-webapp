@@ -16,7 +16,6 @@ class CouponForm(forms.ModelForm):
             'status': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
-
     def clean_coupon_name(self):
         name = self.cleaned_data.get('coupon_name')
         if len(name) < 3:
@@ -31,8 +30,8 @@ class CouponForm(forms.ModelForm):
 
     def clean_discount(self):
         discount = self.cleaned_data.get('discount')
-        if discount <= 0:
-            raise forms.ValidationError("Discount must be greater than zero.")
+        if discount <= 0 or discount > 100:
+            raise forms.ValidationError("Discount must be greater than zero and less than or equal to 100.")
         return discount
 
     def clean_maximum_amount(self):
@@ -51,7 +50,7 @@ class CouponForm(forms.ModelForm):
         code = self.cleaned_data.get('coupon_code')
         if not code.isalnum():
             raise forms.ValidationError("Coupon code must contain only letters and numbers.")
-        return code.upper() 
+        return code.upper()
 
     def clean(self):
         cleaned_data = super().clean()
@@ -59,13 +58,10 @@ class CouponForm(forms.ModelForm):
         maximum_amount = cleaned_data.get('maximum_amount')
         discount = cleaned_data.get('discount')
 
-        if maximum_amount and minimum_amount and maximum_amount < minimum_amount:
-            raise forms.ValidationError("Maximum amount cannot be less than minimum amount.")
+        if discount and (discount <= 0 or discount > 100):
+            self.add_error('discount', "Discount must be between 1 and 100.")
 
-        if discount and minimum_amount and discount > minimum_amount:
-            raise forms.ValidationError("Discount cannot be greater than minimum amount.")
-
-        if maximum_amount and discount and discount > maximum_amount:
-            raise forms.ValidationError("Discount cannot be greater than maximum amount.")
+        if maximum_amount and maximum_amount < 0:
+            self.add_error('maximum_amount', "Maximum amount cannot be negative.")
 
         return cleaned_data

@@ -105,11 +105,36 @@
                                                     <h5 class="mb-0">{{ item.variant.product.product_name }}</h5>
                                                     <p class="text-muted mb-0">Quantity: {{ item.quantity }}<br>Size: {{ item.variant.size }}<br>Price: ₹{{ item.price }}</p>
                                                 </div>
-                                                <div class="col-md-5">
-                                                    <h5 class="mb-0">Delivery Address</h5>
-                                                    <p class="text-muted mb-0">{{ order.address.name }}<br>{{ order.address.house_name }}<br>{{ order.address.district }}<br>{{ order.address.state }}<br>{{ order.address.pin_number }}</p>
+                                                <div class="col-md-5 d-flex flex-column">
+                                                    {% if order.order_status == "Delivered" %}
+                                                    <button type="button" class="btn btn-outline-danger btn-sm mb-2" data-bs-toggle="modal" data-bs-target="#returnItemModal{{ item.id }}">Return Item</button>
+                                                    {% endif %}
                                                 </div>
                                             </div>
+                                            <!-- Return Item Modal -->
+                                <div class="modal fade" id="returnItemModal{{ item.id }}" tabindex="-1" aria-labelledby="returnItemModalLabel{{ item.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="returnItemModalLabel{{ item.id }}">Return Item</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form method="post" action="{% url 'userpanel:return-item' item.id %}">
+                                                {% csrf_token %}
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label for="reason" class="form-label">Reason for return</label>
+                                                        <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <button type="submit" class="btn btn-danger">Return Item</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                                             {% endfor %}
                                         </div>
                                     </td>
@@ -162,6 +187,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -171,4 +197,4 @@
         </div>
     </div>
 </main>
-{% endblock %}
+{% endblock content %}

@@ -74,17 +74,24 @@
                                 </div>
                             </div>
                             <span class="text-muted">₹{{ item.sub_total }}</span>
+
                         </div>
                         {% endfor %}
                         <hr>
                         <div class="d-flex justify-content-between mb-2">
+                            <span>Discount</span>
+                            <span class="text-success">-{{ discount_amount|floatformat:2 }}</span>
+                        </div>
+                        
+                        {% comment %} <div class="d-flex justify-content-between mb-2">
                             <span>Subtotal</span>
                             <span>₹{{ cart_total }}</span>
-                        </div>
+                        </div> {% endcomment %}
                         <div class="d-flex justify-content-between mb-2">
                             <span>Shipping</span>
                             <span class="text-success">Free</span>
                         </div>
+                        
                         <hr>
                         <div class="d-flex justify-content-between mb-4">
                             <span class="h5">Total</span>
@@ -216,7 +223,7 @@
                 alert('Failed to add address: ' + data.error);
             }
         }).catch(error => {
-            console.error('Error:', error); // Log any errors
+            console.error('Error:', error); 
             alert('An error occurred: ' + error.message);
         });
     });

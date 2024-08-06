@@ -85,6 +85,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'social_django.context_processors.backends',
                 'social_django.context_processors.login_redirect',
+                'cart.context_processors.cart_and_wishlist_counts',
             ],
         },
     },
@@ -181,8 +182,9 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
-RAZORPAY_KEY_ID = config('RAZORPAY_KEY')
-RAZORPAY_KEY_SECRET = config('RAZORPAY_SECRET')
+RAZORPAY_KEY_ID = config('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET')
+
 
 LOGIN_URL = 'login/'
 LOGOUT_URL = 'logout/'
