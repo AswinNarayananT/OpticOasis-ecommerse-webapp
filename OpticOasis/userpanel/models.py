@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import User
+from django.utils import timezone
 from product.models import Product_Variant
 
 # Create your models here.
@@ -13,7 +14,7 @@ class UserAddress(models.Model):
     pin_number = models.IntegerField(null=False)
     district = models.CharField(max_length=100, null=False)
     state = models.CharField(max_length=100, null=False)
-    country = models.CharField(max_length=50, null=False, default="null")
+    country = models.CharField(max_length=50, null=False, default="India")
     phone_number = models.CharField(max_length=50, null=False)
     
     status = models.BooleanField(default=False)
@@ -35,11 +36,25 @@ class Wishlist(models.Model):
         return f"{self.user.first_name}'s wishlist: {self.variant}"
 
 
-
 class Wallet(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    date = models.DateField(auto_now_add=True)
-    description = models.TextField(null=False)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    transaction_type = models.CharField(max_length=50)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    updated_at = models.DateField(auto_now_add=True)
+
     
+    def __str__(self):
+        return f"{self.user.first_name}'s Wallet"
+
+
+class WalletTransaction(models.Model):
+    wallet = models.ForeignKey(Wallet,on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.CharField(max_length=500)
+    timestamp = models.DateTimeField(default=timezone.now)
+    transaction_type=models.CharField(max_length=500)    
+
+    def __str__(self):
+        return f"Transaction of {self.amount} on {self.timestamp}"
+
+
+

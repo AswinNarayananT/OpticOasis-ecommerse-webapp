@@ -48,6 +48,7 @@
         {% if wishlists %}
         {% for wishlist in wishlists %}
         <div class="wishlist-item">
+        <a href="{% url 'product:product-detail-page' wishlist.variant.product.id %}">
             {% with wishlist.variant.product_variant_images_set.all.first as first_image %}
             {% if first_image %}
                 <img src="{{ first_image.images.url }}" alt="{{ wishlist.variant.product.product_name }}">
@@ -55,6 +56,7 @@
                 <img src="{{ wishlist.variant.product.thumbnail.url }}" alt="{{ wishlist.variant.product.product_name }}">
             {% endif %}
             {% endwith %}
+            
             <div class="product-info">
                 <h5 style="padding-bottom:5px;">{{ wishlist.variant.product.product_brand }}</h5>
                 <h4><a href="">{{ wishlist.variant.product.product_name }}</a></h4>
@@ -62,7 +64,11 @@
                 <p>Category: {{ wishlist.variant.product.product_category }}</p>
                 <p>Price: ₹ {{ wishlist.variant.product.offer_price }}</p>
             </div>
-            <a href="#" class="btn btn-sm btn-outline-danger remove-item ms-3" data-url="">Remove</a>
+        </a>
+        <a href="#" class="btn btn-sm btn-outline-danger remove-item ms-3"
+            data-url="{% url 'userpanel:remove-wishlist' %}" 
+            data-wishlist-id="{{ wishlist.id }}">Remove
+        </a>
         </div>
         {% endfor %}
         {% else %}
@@ -72,17 +78,21 @@
         {% endif %}
     </div>
 </div>
-
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css">
 
 <script>
     $(document).ready(function() {
         $('.remove-item').click(function(event) {
             event.preventDefault();
             var url = $(this).data('url');
+            var wishlistId = $(this).data('wishlist-id');
 
             Swal.fire({
                 title: 'Are you sure?',
@@ -98,25 +108,12 @@
                         url: url,
                         type: 'POST',
                         data: {
-                            'csrfmiddlewaretoken': '{{ csrf_token }}'
+                            'csrfmiddlewaretoken': '{{ csrf_token }}',
+                            'wishlist_id': wishlistId
                         },
                         success: function(response) {
-                            console.log(response)
-                            if (response.success) {
-                                Swal.fire(
-                                    'Removed!',
-                                    'Your item has been removed from the wishlist.',
-                                    'success'
-                                ).then(() => {
-                                    location.reload();
-                                });
-                            } else {
-                                Swal.fire(
-                                    'Error!',
-                                    response.message,
-                                    'error'
-                                );
-                            }
+                            // Redirect to the wishlist page after successful removal
+                            window.location.href = "{% url 'userpanel:wishlist' %}";
                         },
                         error: function(xhr, status, error) {
                             Swal.fire(
@@ -130,6 +127,8 @@
             });
         });
     });
+</script>
+
 </script>
 
 <script>

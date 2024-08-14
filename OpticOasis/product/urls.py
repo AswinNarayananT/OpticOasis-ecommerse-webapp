@@ -21,7 +21,5 @@ urlpatterns = [
     path('get-variant-sizes/', views.get_variant_sizes, name='get-variant-sizes'),
     path('add-review/<int:product_id>/',views.add_review, name='add-review'),
     path('shop-page',views.shop_page, name='shop-page'),
-    # path('filter-products/',views.filter_products, name='product-filter'),
-
-    
+  
 ]

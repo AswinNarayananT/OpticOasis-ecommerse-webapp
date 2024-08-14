@@ -150,6 +150,7 @@ def checkout(request):
 
     cart_item_ids = cart_item_ids.split(',')
     cart_items = CartItem.objects.filter(id__in=cart_item_ids, cart__user=user)
+    
     if not cart_items.exists():
         messages.error(request, "No valid items found in cart. Please try again.")
         return redirect('cart:cart-view')  
@@ -244,76 +245,33 @@ def add_address(request):
 
 
 
+@login_required
+def add_address(request):
+    # Process the form data
+    new_address = UserAddress(
+        user=request.user,
+        name=request.POST['name'],
+        phone_number=request.POST['phone_number'],
+        house_name=request.POST['house_name'],
+        street_name=request.POST['street_name'],
+        district=request.POST['district'],
+        state=request.POST['state'],
+        country=request.POST['country'],
+        pin_number=request.POST['pin_number']
+    )
+    new_address.save()
 
-
-
-
-
-
-
-
-
-
-# @csrf_exempt
-# @login_required
-# def update_cart_quantity(request):
-#     if request.method == 'POST':
-#         item_id = request.POST.get('item_id')
-#         new_quantity = request.POST.get('quantity')
-#         if not item_id or not new_quantity:
-#             return JsonResponse({'success': False, 'error': 'Missing item ID or quantity'})
-#         try:
-#             new_quantity = int(new_quantity)
-#         except ValueError:
-#             return JsonResponse({'success': False, 'error': 'Invalid quantity'})
-#         if new_quantity < 1 or new_quantity > 5:
-#             return JsonResponse({'success': False, 'error': 'Quantity must be between 1 and 5'})
-#         try:
-#             cart_item = CartItem.objects.get(id=item_id, cart__user=request.user)
-#             if new_quantity > cart_item.variant.variant_stock:
-#                 return JsonResponse({'success': False, 'error': 'Quantity exceeds available stock'})
-#             cart_item.quantity = new_quantity
-#             cart_item.save()
-#             user_cart = cart_item.cart
-#             cart_items = CartItem.objects.filter(cart=user_cart, is_active=True)
-#             cart_total = sum(item.sub_total() for item in cart_items)
-
-#             applied_coupon_id = request.session.get('applied_coupon')
-#             discount_amount = 0
-#             coupon_message = ''
-#             if applied_coupon_id:
-#                 try:
-#                     coupon = Coupon.objects.get(id=applied_coupon_id, status=True)
-#                     if coupon.expiry_date >= timezone.now().date():
-#                         if cart_total >= coupon.minimum_amount:
-                         
-#                             discount_amount = (cart_total * coupon.discount) // 100
-                            
-#                             if coupon.maximum_amount > 0:
-#                                 discount_amount = min(discount_amount, coupon.maximum_amount)
-                            
-#                             coupon_message = 'Coupon applied successfully!'
-#                         else:
-#                             del request.session['applied_coupon']
-#                             coupon_message = f'Coupon removed. Cart total must be at least ${coupon.minimum_amount}.'
-#                     else:
-#                         del request.session['applied_coupon']
-#                         coupon_message = 'Coupon removed. It has expired.'
-#                 except Coupon.DoesNotExist:
-#                     del request.session['applied_coupon']
-#                     coupon_message = 'Coupon removed. It is no longer valid.'
-
-#             final_total = cart_total - discount_amount
-
-#             response = {
-#                 'success': True,
-#                 'cart_total': float(cart_total),
-#                 'discount_amount': float(discount_amount),
-#                 'final_total': float(final_total),
-#                 'item_sub_total': float(cart_item.sub_total()),
-#                 'coupon_message': coupon_message
-#             }
-#             return JsonResponse(response)
-#         except CartItem.DoesNotExist:
-#             return JsonResponse({'success': False, 'error': 'Cart item not found'})
-#     return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    return JsonResponse({
+        'success': True,
+        'address': {
+            'id': new_address.id,
+            'name': new_address.name,
+            'phone_number': new_address.phone_number,
+            'house_name': new_address.house_name,
+            'street_name': new_address.street_name,
+            'district': new_address.district,
+            'state': new_address.state,
+            'country': new_address.country,
+            'pin_number': new_address.pin_number,
+        }
+    })

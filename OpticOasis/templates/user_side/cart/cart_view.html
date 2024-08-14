@@ -59,7 +59,15 @@
             </div>
             {% endfor %}
         {% else %}
-            <img src="http://iticsystem.com/img/empty-cart.png" alt="Empty cart" class="img-fluid rounded">
+            <div>
+                <div class="text-center">
+                    <img src="http://iticsystem.com/img/empty-cart.png" alt="Empty cart" class="img-fluid rounded">
+                </div>
+                <div class="text-center">
+                    <a href="{% url 'product:shop-page' %}" class="btn btn-primary mt-5">Go Shopping</a>
+                </div>
+            </div>
+            
         {% endif %} 
         </div>
         <div class="col-lg-4">

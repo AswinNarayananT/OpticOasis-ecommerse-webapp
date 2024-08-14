@@ -1,10 +1,11 @@
 {% extends 'user_side/user_base.html' %}
 {% load static %}
+
 {% block content %}
 <main class="container my-5">
     <div class="row g-5">
         <!-- User Profile Card -->
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card border-0 shadow-sm">
                 <div class="card-body text-center">
                     <div class="mb-3">
@@ -13,23 +14,25 @@
                     <h5 class="card-title">{{ user.get_full_name }}</h5>
                     <p class="card-text text-muted">{{ user.email }}</p>
                     <a href="{% url 'userpanel:edit-profile' %}" class="btn btn-outline-secondary btn-sm mt-2">Edit Profile</a>
+                    <a href="{% url 'userpanel:password-change' %}" class="btn btn-outline-secondary btn-sm mt-2">Change Password</a>
                 </div>
             </div>
             <div class="list-group mt-4 shadow-sm">
-                <a href="{% url 'userpanel:user-profile' %}" class="list-group-item list-group-item-action active" aria-current="true">
+                <a href="{% url 'userpanel:user-profile' %}" class="list-group-item list-group-item-action" aria-current="true">
                     Dashboard
                 </a>
                 <a href="{% url 'userpanel:order-list' %}" class="list-group-item list-group-item-action">Orders</a>
-                <a href="{% url 'userpanel:add-address' %}" class="list-group-item list-group-item-action">Your Address</a>
-                <a href="{% url 'userpanel:password-change' %}" class="list-group-item list-group-item-action">Change Password</a>
+                <a href="{% url 'userpanel:user-address' %}" class="list-group-item list-group-item-action">Your Address</a>
                 <a href="{% url 'userpanel:wallet-view' %}" class="list-group-item list-group-item-action">Wallet</a>
                 {% comment %} <a href="#" class="list-group-item list-group-item-action">Reviews</a>
                 <a href="#" class="list-group-item list-group-item-action">Settings</a> {% endcomment %}
             </div>
         </div>
 
+        
+
         <!-- Orders Table -->
-        <div class="col-md-8">
+        <div class="col-md-9">
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-body">
                     <h4 class="card-title mb-4">Your Orders</h4>
@@ -39,7 +42,9 @@
                                 <tr>
                                     <th>Order ID</th>
                                     <th>Address</th>
-                                    <th>Price</th>
+                                    <th>Total Price</th>
+                                    <th>dicount</th>
+                                    <th>Subtotal Price</th>
                                     <th>Date</th>
                                     <th>Status</th>
                                     <th>Action</th>
@@ -61,6 +66,8 @@
                                         {{ order.address.pin_number }}
                                     </td>
                                     <td>₹{{ order.total_amount }}</td>
+                                    <td>₹{{ order.discount_amount }}</td>
+                                    <td>₹{{ order.final_amount }}</td>
                                     <td>{{ order.date }}</td>
                                     <td>
                                         {% if order.order_status == "Pending" %}
@@ -81,60 +88,130 @@
                                     </td>
                                     <td>
                                         <div class="d-flex flex-column gap-2">
-                                            {% if order.order_status == "Pending" or order.order_status == "Awaiting payment" or order.order_status == "Confirmed" or order.order_status == "Shipped" %}
-                                            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelOrderModal{{ order.id }}">Cancel Order</button>
-                                            {% endif %}
-                                            {% if order.order_status == "Delivered" %}
-                                            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#returnOrderModal{{ order.id }}">Return Order</button>
-                                            {% endif %}
+                                            {% if order.order_status in status_list and order.has_active_items %}
+                                            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelOrderModal{{ order.id }}">
+                                                Cancel Order
+                                            </button>
+                                        {% endif %}
+                                        {% if order.order_status == 'Delivered' %}
+                                        <form method="get" action="{% url 'userpanel:download_invoice' order_id=order.id %}">
+                                            <button type="submit">Download Invoice</button>
+                                        </form>
+                                       {% endif %}
+                                        {% if order.order_status == "Delivered" %}
+                                        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#returnOrderModal{{ order.id }}">Return Order</button>
+                                        {% endif %}
                                             <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#orderDetails{{ order.id }}" aria-expanded="false" aria-controls="orderDetails{{ order.id }}">
                                                 Details
                                             </button>
+
+                                        
                                         </div>
                                     </td>
                                 </tr>
                                 <tr class="collapse" id="orderDetails{{ order.id }}">
-                                    <td colspan="6" class="bg-light">
+                                    <td colspan="8" class="bg-light">
                                         <div class="p-3">
                                             {% for item in order.ordersub_set.all %}
-                                            <div class="row mb-3 align-items-center">
+                                            <div id="orderItem{{ item.id }}" class="row mb-3 align-items-center">
                                                 <div class="col-md-2">
                                                     <img src="{{ item.variant.product_variant_images_set.first.images.url }}" alt="{{ item.variant.product.product_name }}" class="img-fluid rounded">
                                                 </div>
                                                 <div class="col-md-5">
                                                     <h5 class="mb-0">{{ item.variant.product.product_name }}</h5>
-                                                    <p class="text-muted mb-0">Quantity: {{ item.quantity }}<br>Size: {{ item.variant.size }}<br>Price: ₹{{ item.price }}</p>
+                                                    <p class="text-muted mb-0">Quantity: {{ item.quantity }}<br>Size: {{ item.variant.size }}<br>Price: ₹{{ item.price }}<br>{% if item.status %}{{ item.status  }}{% endif %}</p>
+                                                    {% if item.return_status %}
+                                                    <p class="text-danger mb-0">Return Status: {{ item.return_status.status }}</p>
+                                                    {% endif %}
                                                 </div>
                                                 <div class="col-md-5 d-flex flex-column">
+                                                    {% if item.is_active and not item.return_status  %}
                                                     {% if order.order_status == "Delivered" %}
                                                     <button type="button" class="btn btn-outline-danger btn-sm mb-2" data-bs-toggle="modal" data-bs-target="#returnItemModal{{ item.id }}">Return Item</button>
                                                     {% endif %}
+                                                    {% if  order.order_status in "Pending,Awaiting payment,Confirmed,Shipped" %}
+                                                    <button type="button" class="btn btn-outline-danger btn-sm cancel-item-btn" data-bs-toggle="modal" data-bs-target="#cancelItemModal{{ item.id }}">Cancel Item</button>
+                                                    {% endif %}
+                                                    {% endif %}
+
                                                 </div>
                                             </div>
+
                                             <!-- Return Item Modal -->
-                                <div class="modal fade" id="returnItemModal{{ item.id }}" tabindex="-1" aria-labelledby="returnItemModalLabel{{ item.id }}" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="returnItemModalLabel{{ item.id }}">Return Item</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <form method="post" action="{% url 'userpanel:return-item' item.id %}">
-                                                {% csrf_token %}
-                                                <div class="modal-body">
-                                                    <div class="mb-3">
-                                                        <label for="reason" class="form-label">Reason for return</label>
-                                                        <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                                            <div class="modal fade" id="returnItemModal{{ item.id }}" tabindex="-1" aria-labelledby="returnItemModalLabel{{ item.id }}" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="returnItemModalLabel{{ item.id }}">Return Item</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form method="post" action="{% url 'userpanel:return-item' item.id %}">
+                                                            {% csrf_token %}
+                                                            <div class="modal-body">
+                                                                <div class="mb-3">
+                                                                    <label for="reason" class="form-label">Reason for return</label>
+                                                                    <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                <button type="submit" class="btn btn-danger">Return Item</button>
+                                                            </div>
+                                                        </form>
                                                     </div>
                                                 </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                    <button type="submit" class="btn btn-danger">Return Item</button>
+                                            </div>
+
+                                            <!-- Return Order Modal -->
+                                            <div class="modal fade" id="returnOrderModal{{ order.id }}" tabindex="-1" aria-labelledby="returnOrderModalLabel{{ order.id }}" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="returnOrderModalLabel{{ order.id }}">Return Order</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form method="post" action="{% url 'userpanel:return-order' order.id %}">
+                                                            {% csrf_token %}
+                                                            <div class="modal-body">
+                                                                <div class="mb-3">
+                                                                    <label for="reason" class="form-label">Reason for return</label>
+                                                                    <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                <button type="submit" class="btn btn-danger">Return Order</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
                                                 </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
+                                            </div>
+
+                                            <!-- Cancel Item Modal -->
+                                            <div class="modal fade" id="cancelItemModal{{ item.id }}" tabindex="-1" aria-labelledby="cancelItemModalLabel{{ item.id }}" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="cancelItemModalLabel{{ item.id }}">Cancel Item</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form method="post" action="{% url 'userpanel:cancel-order-item' %}">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="order_sub_id" value="{{ item.id }}">
+                                                            <div class="modal-body">
+                                                                <p>Are you sure you want to cancel this item?</p>
+                                                                <p><strong>{{ item.variant.product.product_name }}</strong></p>
+                                                                <p>Quantity: {{ item.quantity }}</p>
+                                                                <p>Price: ₹{{ item.price }}</p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                <button type="submit" class="btn btn-danger">Cancel Item</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             {% endfor %}
                                         </div>
                                     </td>
@@ -150,10 +227,9 @@
                                             <form method="post" action="{% url 'userpanel:cancel-order' order.id %}">
                                                 {% csrf_token %}
                                                 <div class="modal-body">
-                                                    <div class="mb-3">
-                                                        <label for="reason" class="form-label">Reason for cancellation</label>
-                                                        <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
-                                                    </div>
+                                                    <p>Are you sure you want to cancel this entire order?</p>
+                                                    <p><strong>Order ID: {{ order.order_id }}</strong></p>
+                                                    <p>Total Amount: ₹{{ order.final_amount }}</p>
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -163,38 +239,253 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- Return Order Modal -->
-                                <div class="modal fade" id="returnOrderModal{{ order.id }}" tabindex="-1" aria-labelledby="returnOrderModalLabel{{ order.id }}" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="returnOrderModalLabel{{ order.id }}">Return Order</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <form method="post" action="{% url 'userpanel:return-order' order.id %}">
-                                                {% csrf_token %}
-                                                <div class="modal-body">
-                                                    <div class="mb-3">
-                                                        <label for="reason" class="form-label">Reason for return</label>
-                                                        <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                    <button type="submit" class="btn btn-danger">Return Order</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                
                                 {% endfor %}
                             </tbody>
                         </table>
+                        <!-- Pagination -->
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination justify-content-center mt-4">
+                                {% if orders.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ orders.previous_page_number }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true">&laquo;</span>
+                                </li>
+                                {% endif %}
+                            
+                                {% for i in orders.paginator.page_range %}
+                                {% if orders.number == i %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ i }}</span>
+                                </li>
+                                {% elif i > orders.number|add:'-3' and i < orders.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                </li>
+                                {% endif %}
+                                {% endfor %}
+                            
+                                {% if orders.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ orders.next_page_number }}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true">&raquo;</span>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+
                     </div>
                 </div>
             </div>
         </div>
+         
     </div>
 </main>
 {% endblock content %}
+
+{% block extra_scripts %}
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cancelItemForms = document.querySelectorAll('form[action="{% url 'userpanel:cancel-order-item' %}"]');
+        
+        cancelItemForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const itemId = formData.get('order_sub_id');
+                
+                fetch("{% url 'userpanel:cancel-order-item' %}", {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the UI to reflect the canceled item
+                        const itemRow = document.querySelector(`#orderItem${itemId}`);
+                        if (itemRow) {
+                            const statusSpan = itemRow.querySelector('.item-status');
+                            if (statusSpan) {
+                                statusSpan.textContent = 'Canceled';
+                            }
+                            
+                            // Remove the cancel button
+                            const cancelButton = itemRow.querySelector('.cancel-item-btn');
+                            if (cancelButton) {
+                                cancelButton.remove();
+                            }
+                        }
+                        
+                        // Close the modal
+                        const modal = bootstrap.Modal.getInstance(document.querySelector(`#cancelItemModal${itemId}`));
+                        modal.hide();
+                        
+                        // Show a success message
+                        alert(data.message);
+                    } else {
+                        // Show an error message
+                        alert(data.message || 'An error occurred while canceling the item.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing your request.');
+                });
+            });
+        });
+    });
+
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cancelOrderForms = document.querySelectorAll('form[action^="{% url 'userpanel:cancel-order' 0 %}".slice(0, -1)]');
+        
+        cancelOrderForms.forEach(form => {
+            form.addEventListener('submit', function() {
+                const modal = bootstrap.Modal.getInstance(this.closest('.modal'));
+                if (modal) {
+                    modal.hide();
+                }
+            });
+        });
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle return item form submission
+        const returnItemForms = document.querySelectorAll('form[action^="{% url 'userpanel:return-item' 0 %}".slice(0, -1)]');
+    
+        returnItemForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const itemId = form.action.split('/').slice(-2, -1)[0];
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the UI to reflect the returned item
+                        const itemRow = document.querySelector(`#orderItem${itemId}`);
+                        if (itemRow) {
+                            const statusSpan = itemRow.querySelector('.item-status');
+                            if (statusSpan) {
+                                statusSpan.textContent = 'Returned';
+                            }
+                            
+                            // Remove the return button
+                            const returnButton = itemRow.querySelector('.return-item-btn');
+                            if (returnButton) {
+                                returnButton.remove();
+                            }
+                        }
+                        
+                        // Close the modal
+                        const modal = bootstrap.Modal.getInstance(document.querySelector(`#returnItemModal${itemId}`));
+                        modal.hide();
+                        
+                        // Show a success message
+                        alert(data.message);
+                    } else {
+                        // Show an error message
+                        alert(data.message || 'An error occurred while returning the item.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing your request.');
+                });
+            });
+        });
+    });
+    
+</script>
+<script>
+    // Handle return order form submission
+    const returnOrderForms = document.querySelectorAll('form[action^="{% url 'userpanel:return-order' 0 %}".slice(0, -1)]');
+        
+    returnOrderForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const orderId = form.action.split('/').slice(-2, -1)[0];
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the UI to reflect the returned order
+                    const orderRow = document.querySelector(`#orderRow${orderId}`);
+                    if (orderRow) {
+                        const statusSpan = orderRow.querySelector('.order-status');
+                        if (statusSpan) {
+                            statusSpan.textContent = 'Returned';
+                        }
+                        
+                        // Remove the return button
+                        const returnButton = orderRow.querySelector('.return-order-btn');
+                        if (returnButton) {
+                            returnButton.remove();
+                        }
+                    }
+                    
+                    // Close the modal
+                    const modalElement = document.querySelector(`#returnOrderModal${orderId}`);
+                    if (modalElement) {
+                        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                        if (modalInstance) {
+                            modalInstance.hide();
+                        } else {
+                            console.error('Modal instance not found.');
+                        }
+                    } else {
+                        console.error('Modal element not found.');
+                    }
+                    
+                    // Show a success message
+                    alert(data.message);
+                } else {
+                    // Show an error message
+                    alert(data.message || 'An error occurred while returning the order.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while processing your request.');
+            });
+        });
+    });
+</script>
+
+
+{% endblock %}

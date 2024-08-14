@@ -9,6 +9,9 @@ from cart.models import Cart, CartItem
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from utils.decorators import admin_required
+from django.http import JsonResponse
+import random
+import string
 
 
 # Create your views here.
@@ -30,6 +33,13 @@ def create_coupon(request):
         form = CouponForm()
     return render(request, 'admin_side/coupon/create_edit_coupon.html', {'form': form})
 
+
+def generate_coupon_code(request):
+    if request.method == "GET":
+        length = 8  # Length of the coupon code
+        characters = string.ascii_uppercase + string.digits
+        coupon_code = ''.join(random.choice(characters) for _ in range(length))
+        return JsonResponse({'coupon_code': coupon_code})
 
 
 @admin_required

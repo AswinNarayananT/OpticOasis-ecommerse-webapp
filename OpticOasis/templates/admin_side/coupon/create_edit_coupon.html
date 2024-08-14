@@ -39,7 +39,12 @@
                         <div class="mb-3 row">
                             <label for="id_coupon_code" class="col-sm-3 col-form-label">Coupon Code</label>
                             <div class="col-sm-9">
-                                {{ form.coupon_code }}
+                                <div class="input-group">
+                                    {{ form.coupon_code }}
+                                    <button type="button" class="btn btn-outline-secondary" id="refresh-coupon-code">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
                                 {% if form.coupon_code.errors %}
                                     <div class="invalid-feedback d-block">{{ form.coupon_code.errors }}</div>
                                 {% endif %}
@@ -117,4 +122,20 @@
         </div>
     </div>
 </div>
+
+<!-- Include FontAwesome for the refresh icon (if not already included) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<!-- JavaScript for handling the refresh button click -->
+<script>
+document.getElementById('refresh-coupon-code').addEventListener('click', function() {
+    fetch("{% url 'coupon:generate-coupon-code' %}")
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('id_coupon_code').value = data.coupon_code;
+        })
+        .catch(error => console.error('Error:', error));
+});
+</script>
 {% endblock content %}
+

@@ -4,7 +4,7 @@
 {% block content %}
 <main class="container my-5">
     <div class="row g-5">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card border-0 shadow-sm">
                 <div class="card-body text-center">
                     <div class="mb-3">
@@ -17,18 +17,17 @@
                 </div>
             </div>
             <div class="list-group mt-4 shadow-sm">
-                <a href="{% url 'userpanel:user-profile' %}" class="list-group-item list-group-item-action active" aria-current="true">
+                <a href="{% url 'userpanel:user-profile' %}" class="list-group-item list-group-item-action" aria-current="true">
                     Dashboard
                 </a>
                 <a href="{% url 'userpanel:order-list' %}" class="list-group-item list-group-item-action">Orders</a>
-                <a href="{% url 'userpanel:add-address' %}" class="list-group-item list-group-item-action">Your Address</a>
-                <a href="{% url 'userpanel:password-change' %}" class="list-group-item list-group-item-action">Change Password</a>
+                <a href="{% url 'userpanel:user-address' %}" class="list-group-item list-group-item-action">Your Address</a>
                 <a href="{% url 'userpanel:wallet-view' %}" class="list-group-item list-group-item-action">Wallet</a>
                 {% comment %} <a href="#" class="list-group-item list-group-item-action">Reviews</a>
                 <a href="#" class="list-group-item list-group-item-action">Settings</a> {% endcomment %}
             </div>
         </div>
-        <div class="col-md-8">
+        <div class="col-md-9">
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-body">
                     {% comment %} <h4 class="card-title mb-4">Personal Information <a href="" class="btn btn-outline-secondary btn-sm float-end">Edit</a></h4> {% endcomment %}

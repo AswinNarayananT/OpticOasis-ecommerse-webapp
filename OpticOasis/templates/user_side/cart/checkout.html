@@ -4,14 +4,14 @@
 {% block content %}
 <main class="container my-5">
     <h1 class="h2 mb-4">Checkout</h1>
-
+{% comment %} 
     {% if messages %}
     <div class="alert alert-danger" role="alert">
         {% for message in messages %}
             {{ message }}
         {% endfor %}
     </div>
-    {% endif %}
+    {% endif %} {% endcomment %}
 
     <form method="post" action="{% url 'orders:order-placed' %}" id="checkoutForm">
         {% csrf_token %}
@@ -105,7 +105,7 @@
                     <div class="card-body">
                         <h3 class="card-title h5 mb-3">Payment Method</h3>
                         <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="payment_method" id="wallet" value="credit_card" checked>
+                            <input class="form-check-input" type="radio" name="payment_method" id="wallet" value="wallet" checked>
                             <label class="form-check-label" for="wallet">
                                 wallet
                             </label>
@@ -133,101 +133,115 @@
 <!-- New Address Modal -->
 <div class="modal fade" id="newAddressModal" tabindex="-1" aria-labelledby="newAddressModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="newAddressModalLabel">Add New Address</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="newAddressForm">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <input type="text" class="form-control" name="name" placeholder="Name" required>
-                    </div>
-                    <div class="mb-3">
-                        <input type="text" class="form-control" name="house_name" placeholder="House Name" required>
-                    </div>
-                    <div class="mb-3">
-                        <input type="text" class="form-control" name="street_name" placeholder="Street Name" required>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col">
-                            <input type="text" class="form-control" name="pin_number" placeholder="PIN Code" required>
-                        </div>
-                        <div class="col">
-                            <input type="text" class="form-control" name="district" placeholder="District" required>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col">
-                            <input type="text" class="form-control" name="state" placeholder="State" required>
-                        </div>
-                        <div class="col">
-                            <input type="text" class="form-control" name="country" placeholder="Country">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <input type="text" class="form-control" name="phone_number" placeholder="Phone Number" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Add Address</button>
-                </form>
-            </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="newAddressModalLabel">Add New Address</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+        <div class="modal-body">
+          <form id="newAddressForm">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="name" class="form-label">Full Name</label>
+              <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="mb-3">
+              <label for="phone_number" class="form-label">Phone Number</label>
+              <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+            </div>
+            <div class="mb-3">
+              <label for="house_name" class="form-label">House Name/Number</label>
+              <input type="text" class="form-control" id="house_name" name="house_name" required>
+            </div>
+            <div class="mb-3">
+              <label for="street_name" class="form-label">Street Name</label>
+              <input type="text" class="form-control" id="street_name" name="street_name" required>
+            </div>
+            <div class="mb-3">
+              <label for="district" class="form-label">District</label>
+              <input type="text" class="form-control" id="district" name="district" required>
+            </div>
+            <div class="mb-3">
+              <label for="state" class="form-label">State</label>
+              <input type="text" class="form-control" id="state" name="state" required>
+            </div>
+            <div class="mb-3">
+              <label for="country" class="form-label">Country</label>
+              <input type="text" class="form-control" id="country" name="country" required>
+            </div>
+            <div class="mb-3">
+              <label for="pin_number" class="form-label">PIN Code</label>
+              <input type="text" class="form-control" id="pin_number" name="pin_number" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="saveNewAddress">Save Address</button>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
 
-<script>
-    document.getElementById('saveNewAddress').addEventListener('click', function(event) {
-        event.preventDefault();
-        var form = document.getElementById('newAddressForm');
-        var formData = new FormData(form);
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const saveNewAddressBtn = document.getElementById('saveNewAddress');
+        const newAddressForm = document.getElementById('newAddressForm');
+        const addressList = document.getElementById('addressList');
+        const modal = document.getElementById('newAddressModal');
     
-        fetch('{% url "orders:add-address" %}', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': '{{ csrf_token }}'
-            }
-        }).then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        }).then(data => {
-            console.log(data); // Log the response data for debugging
-            if (data.success) {
-                var newAddress = `
-                    <div class="col-md-6 mb-3 address-item">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="selected_address" id="address${data.address_id}" value="${data.address_id}" checked>
-                                    <label class="form-check-label" for="address${data.address_id}">
-                                        <strong>${data.name}</strong><br>
-                                        ${data.house_name}, ${data.street_name}<br>
-                                        ${data.district}, ${data.state}<br>
-                                        ${data.country} - ${data.pin_number}<br>
-                                        Phone: ${data.phone_number}
-                                    </label>
+        saveNewAddressBtn.addEventListener('click', function() {
+            const formData = new FormData(newAddressForm);
+            
+            fetch('{% url "cart:add-address" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Create new address element
+                    const newAddressHtml = `
+                        <div class="col-md-6 mb-3 address-item">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="selected_address" id="address${data.address.id}" value="${data.address.id}">
+                                        <label class="form-check-label" for="address${data.address.id}">
+                                            <strong>${data.address.name}</strong><br>
+                                            ${data.address.house_name}, ${data.address.street_name}<br>
+                                            ${data.address.district}, ${data.address.state}<br>
+                                            ${data.address.country} - ${data.address.pin_number}<br>
+                                            Phone: ${data.address.phone_number}
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `;
-                document.getElementById('addressList').insertAdjacentHTML('afterbegin', newAddress);
-                document.getElementById('newAddressForm').reset();
-                var newAddressModal = new bootstrap.Modal(document.getElementById('newAddressModal'));
-                newAddressModal.hide();
-            } else {
-                alert('Failed to add address: ' + data.error);
-            }
-        }).catch(error => {
-            console.error('Error:', error); 
-            alert('An error occurred: ' + error.message);
+                    `;
+                    
+                    // Insert new address before the "Add New Address" button
+                    const addNewAddressBtn = addressList.lastElementChild;
+                    addressList.insertAdjacentHTML('beforeend', newAddressHtml);
+                    
+                    // Close the modal
+                    const modalInstance = bootstrap.Modal.getInstance(modal);
+                    modalInstance.hide();
+                    
+                    // Reset the form
+                    newAddressForm.reset();
+                } else {
+                    alert('Error adding address. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
         });
     });
     </script>
-    
-    
 {% endblock %}

@@ -2,6 +2,7 @@ from django.db import models
 from category.models import Category
 from brand.models import Brand
 from accounts.models import User
+
 # Create your models here.
 
 
@@ -36,9 +37,11 @@ class Product_Variant(models.Model):
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
     size =models.CharField(max_length=10,null=True)
     colour_name = models.CharField(null=False)
-    variant_stock = models.PositiveIntegerField(null=False,default=0)
+    variant_stock = models.BigIntegerField(null=False, default=0)
     variant_status = models.BooleanField(default=True)
     colour_code = models.CharField(null=False)
+
+
 
 
 

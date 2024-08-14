@@ -136,18 +136,34 @@
                                         <ul class="list-filter size-filter font-small" id="size-list">
                                             {% if unique_sizes %}
                                                 {% for size in unique_sizes %}
-                                                <li>
-                                                    <a href="#" class="size-selector {% if size.size == selected_size %}active{% endif %}" data-size="{{ size.size }}">
-                                                        {{ size.size }}: <span class="stock-status">{% if size.variant_stock > 0 %}{{ size.variant_stock }} in stock{% else %}Out of Stock{% endif %}</span>
-                                                    </a>
-                                                </li>
+                                                    <li>
+                                                        <a href="#" class="size-selector {% if size.size == selected_size %}active{% endif %}" data-size="{{ size.size }}">
+                                                            {{ size.size }}
+                                                        </a>
+                                                        <li>
+                                                            Availability:
+                                                            {% if size.variant_stock > 0 %}
+                                                                <span class="in-stock text-success ml-5">{{ size.variant_stock }} Items In Stock</span>
+                                                            {% else %}
+                                                                <span class="out-of-stock text-danger ml-5">Out of Stock</span>
+                                                            {% endif %}
+                                                        </li>
+                                                    </li>
                                                 {% endfor %}
                                             {% else %}
-                                            <li>
-                                                <a class="size-selector">
-                                                    {{ selected_variant.size }}: <span class="stock-status">{% if selected_variant.variant_stock > 0 %}{{ selected_variant.variant_stock }} in stock{% else %}Out of Stock{% endif %}</span>
-                                                </a>
-                                            </li>
+                                                <li>
+                                                    <a class="size-selector">
+                                                        {{ selected_variant.size }}
+                                                    </a>
+                                                    <li>
+                                                        Availability:
+                                                        {% if selected_variant.variant_stock > 0 %}
+                                                            <span class="in-stock text-success ml-5">{{ selected_variant.variant_stock }} Items In Stock</span>
+                                                        {% else %}
+                                                            <span class="out-of-stock text-danger ml-5">Out of Stock</span>
+                                                        {% endif %}
+                                                    </li>
+                                                </li>
                                             {% endif %}
                                         </ul>
                                         
@@ -158,9 +174,15 @@
                                     <div class="bt-1 border-color-1 mt-30 mb-30"></div>
                                     <div class="detail-extralink">
                                         <div class="detail-qty border radius">
-                                            <a href="#" class="qty-down"><i class="fi-rs-angle-small-down"></i></a>
+                                            <a href="#" class="qty-down" onclick="updateQty(this, -1)"><i class="fi-rs-angle-small-down"></i></a>
                                             <span class="qty-val">1</span>
-                                            <a href="#" class="qty-up"><i class="fi-rs-angle-small-up"></i></a>
+                                            <a href="#" class="qty-up" onclick="
+                                                var qtySpan = this.previousElementSibling;
+                                                var currentQty = parseInt(qtySpan.textContent);
+                                                if (currentQty < 5) {
+                                                    updateQty(this, 1);
+                                                }
+                                            "><i class="fi-rs-angle-small-up"></i></a>
                                         </div>
                                         <div class="product-extra-link2">
                                             {% if user.is_authenticated %}
@@ -170,7 +192,6 @@
                                                 <!-- Go to Cart Button (Initially hidden) -->
                                                 <button id="go-to-cart" type="button" class="button button-go-to-cart" style="display:none;">Go to Cart</button>
 
-                                                 <!-- Wishlist Button -->
                                                  <!-- Wishlist Button -->
                                                 <a href="#" class="action-btn hover-up wishlist-toggle" data-url="{% url 'userpanel:toggle_wishlist' %}">
                                                     <i class="fi-rs-heart" id="wishlistIcon"></i>
@@ -551,8 +572,8 @@
     
         $('.color-select').on('click', function(e) {
             e.preventDefault();
-            $('.color-select').removeClass('selected'); // Remove selected class from all
-            $(this).addClass('selected'); // Add selected class to the clicked one
+            $('.color-select').removeClass('selected'); 
+            $(this).addClass('selected'); 
     
             var imageUrls = $(this).data('image-urls').split(',');
             var variantId = $(this).data('variant-id');
@@ -575,7 +596,7 @@
                 }
             });
     
-            // Fetch and update sizes for the selected variant
+           // Fetch and update sizes for the selected variant
             $.ajax({
                 url: "{% url 'product:get-variant-sizes' %}", // Adjust this URL to your actual endpoint
                 method: 'GET',
@@ -588,14 +609,23 @@
                     response.sizes.forEach(function(item) {
                         var size = item.size;
                         var stock = item.stock;
-                        var stockText = stock > 0 ? stock + ' in stock' : 'Out of Stock';
-                        sizeList.append('<li><a href="#" class="size-selector" data-size="' + size + '">' + size + ': <span class="stock-status">' + stockText + '</span></a></li>');
+                        var stockText = stock > 0
+                            ? '<span class="in-stock text-success ml-5">' + stock + ' Items In Stock</span>'
+                            : '<span class="out-of-stock text-danger ml-5">Out of Stock</span>';
+                        
+                        sizeList.append(
+                            '<li>' +
+                                '<a href="#" class="size-selector" data-size="' + size + '">' + size + '</a>' +
+                                '<li>Availability: ' + stockText + '</li>' +
+                            '</li>'
+                        );
                     });
                 },
                 error: function() {
                     console.error('Failed to fetch sizes for the selected variant.');
                 }
             });
+
             // Update button status based on the selected variant
             updateButtonStatus();
         });
@@ -606,7 +636,11 @@
             var quantity = $(this).closest('.detail-extralink').find('.qty-val').text();
     
             if (!selectedColor) {
-                alert('Please select a color variant.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Please select a color variant.'
+                });
                 return;
             }
     
@@ -620,16 +654,40 @@
                 },
                 success: function(response) {
                     if (response.status == 'success') {
-                        alert('Item added to cart');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Added!',
+                            text: 'Item added to cart.',
+                            toast: true,
+                            position: 'top-right',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
                         // Update button status after adding item to cart
                         updateButtonStatus();
                     } else {
-                        alert('Error adding item to cart');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Error adding item to cart.',
+                            toast: true,
+                            position: 'top-right',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
                     }
                 },
                 error: function(xhr, status, error) {
                     console.error(xhr.responseText);
-                    alert('An error occurred. Please try again.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'An error occurred. Please try again.',
+                        toast: true,
+                        position: 'top-right',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
                 }
             });
         });
@@ -637,7 +695,7 @@
         $('#login-to-add').on('click', function() {
             window.location.href = "{% url 'login' %}";
         });
-
+    
         $('#go-to-cart').on('click', function() {
             window.location.href = "{% url 'cart:cart-view' %}";
         });
@@ -646,6 +704,8 @@
         updateButtonStatus();
     });
     </script>
+    
+</script>
     
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>

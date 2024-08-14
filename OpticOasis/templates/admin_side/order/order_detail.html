@@ -33,11 +33,11 @@
                         </select>
                         <button class="btn btn-primary" type="submit">Save</button>
                     </form>
-                    <a class="btn btn-secondary print ms-2" href="#"><i class="icon material-icons md-print"></i></a>
+                    {% comment %} <a class="btn btn-secondary print ms-2" href="#"><i class="icon material-icons md-print"></i></a>
                     <form method="post" action="">
                         {% csrf_token %}
                     <button class="btn btn-primary" type="submit"><a href="">Save</a></button>
-                </form>
+                    </form> {% endcomment %}
                 </div>
             </div>
         </header> <!-- card-header end// -->
@@ -53,7 +53,7 @@
                             <p class="mb-1">
                                 {{ orders.address.name }} <br> {{ orders.user.email }} <br> +91 {{ orders.address.phone_number }}
                             </p>
-                            <a href="#">View profile</a>
+                            {% comment %} <a href="#">View profile</a> {% endcomment %}
                         </div>
                     </article>
                 </div> <!-- col// -->
@@ -65,9 +65,9 @@
                         <div class="text">
                             <h6 class="mb-1">Order info</h6>
                             <p class="mb-1">
-                                Shipping: {{ orders.address.name }}<br> Pay method: {{ orders.payment_option }} <br> Status: {{ orders.order_status }}
+                                Shipping: {{ orders.address.name }}<br> Pay method: {{ orders.payment_option }}  <br>Pay status:{{ orders.payment_status }} <br> Status: {{ orders.order_status }}
                             </p>
-                            <a href="#">Download info</a>
+                            {% comment %} <a href="#">Download info</a> {% endcomment %}
                         </div>
                     </article>
                 </div> <!-- col// -->
@@ -79,21 +79,20 @@
                         <div class="text">
                             <h6 class="mb-1">Deliver to</h6>
                             <p class="mb-1">
-Address : {{ orders.address.country }}, {{ orders.address.state }} <br>{{ orders.address.district }}, {{ orders.address.street_name }}<br>{{ orders.address.house_name }}<br>PIN: {{ orders.address.pin_number}}
+                            Address : {{ orders.address.country }}, {{ orders.address.state }} <br>{{ orders.address.district }}, {{ orders.address.street_name }}<br>{{ orders.address.house_name }}<br>PIN: {{ orders.address.pin_number}}
                             </p>
-                            <a href="#">View profile</a>
                         </div>
                     </article>
                 </div> <!-- col// -->
             </div> <!-- row // -->
             <div class="row">
-                <div class="col-lg-7">
+                <div class="col-lg-12">
                     <div class="table-responsive">
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th width="40%">Product</th>
-                                    <th width="40%">Name</th>
+                                    <th width="20%">Product</th>
+                                    <th width="20%">Name</th>
                                     <th width="20%">Unit Price</th>
                                     <th width="20%">Quantity</th>
                                     <th width="20%" class="text-end">Total</th>
@@ -125,15 +124,19 @@ Address : {{ orders.address.country }}, {{ orders.address.state }} <br>{{ orders
                                                 <dt>Subtotal:</dt>
                                                 <dd>₹{{ orders.total_amount }}</dd>
                                             </dl>
+                                            <dl class="dlist">
+                                                <dt>Discount:</dt>
+                                                <dd>₹{{ orders.discount_amount }}</dd>
+                                            </dl>
                                             
                                             <dl class="dlist">
                                                 <dt>Grand total:</dt>
-                                                <dd><b class="h5">₹{{ orders.total_amount }}</b></dd>
+                                                <dd><b class="h5">₹{{ orders.final_amount }}</b></dd>
                                             </dl>
                                             <dl class="dlist">
                                                 <dt class="text-muted">Status:</dt>
                                                 <dd>
-                                                    <span class="badge rounded-pill alert-success text-success">{{ orders.payment_status }}</span>
+                                                    <span class="badge rounded-pill alert-success text-success">{{ orders.is_active }}</span>
                                                 </dd>
                                             </dl>
                                         </div>
@@ -143,9 +146,9 @@ Address : {{ orders.address.country }}, {{ orders.address.state }} <br>{{ orders
                         </table>
                     </div> <!-- table-responsive// -->
                     
-                    <a class="btn btn-primary" href="page-orders-tracking.html">View Order Tracking</a>
+                    {% comment %} <a class="btn btn-primary" href="page-orders-tracking.html">View Order Tracking</a> {% endcomment %}
                 </div> <!-- col// -->
-                <div class="col-lg-1"></div>
+                {% comment %} <div class="col-lg-1"></div>
                         <div  class="col-lg-4">
 
                     <div class="h-25 pt-4">
@@ -155,7 +158,7 @@ Address : {{ orders.address.country }}, {{ orders.address.state }} <br>{{ orders
                         </div>
                         <button class="btn btn-primary">Save note</button>
                     </div>
-                </div> <!-- col// -->
+                </div> <!-- col// --> {% endcomment %}
             </div>
         </div> <!-- card-body end// -->
     </div> <!-- card end// -->

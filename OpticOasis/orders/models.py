@@ -3,9 +3,23 @@ from django.db import models
 from accounts.models import *
 from product.models import *
 from userpanel.models import *
+from decimal import Decimal
+
 
 # Create your models here..
 
+
+class OrderAddress(models.Model):
+    name = models.CharField(max_length=50, null=False)
+    house_name = models.CharField(max_length=100, null=False)
+    street_name = models.CharField(max_length=100, null=False)
+    pin_number = models.IntegerField(null=False)
+    district = models.CharField(max_length=100, null=False)
+    state = models.CharField(max_length=100, null=False)
+    country = models.CharField(max_length=50, null=False)
+    phone_number = models.CharField(max_length=50, null=False)
+    
+    status = models.BooleanField(default=True)
 
 class OrderMain(models.Model):
     ORDER_STATUS_CHOICES = [
@@ -18,8 +32,10 @@ class OrderMain(models.Model):
         ('Returned', 'Returned'),
     ]
     user = models.ForeignKey(User,  on_delete=models.SET_NULL, null=True)
-    address = models.ForeignKey(UserAddress, on_delete=models.SET_NULL,null=True)
+    address = models.ForeignKey(OrderAddress, on_delete=models.SET_NULL,null=True)
     total_amount = models.FloatField(null=False)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    final_amount = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateField(auto_now_add=True)
     order_status = models.CharField( max_length=100, choices=ORDER_STATUS_CHOICES, default='Pending')
     payment_option = models.CharField(max_length=100, default="Cash_on_delivery")
@@ -37,11 +53,12 @@ class OrderSub(models.Model):
     quantity = models.IntegerField(null=False, default=0)
     price = models.FloatField(null=False,default=0)
     is_active = models.BooleanField(default=True)
+    status = models.CharField(max_length=50,null=True, blank=True)
     
     def total_cost(self):
-        return self.quantity * self.price
+        return Decimal(self.quantity) * Decimal(self.price)
     
-
+    
 
 class ReturnRequest(models.Model):
     RETURN_STATUS_CHOICES = [

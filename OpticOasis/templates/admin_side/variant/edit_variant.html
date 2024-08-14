@@ -29,8 +29,9 @@
                 </div>
                 <div class="form-group">
                     <label for="colour_code">Colour Code</label>
-                    <input type="text" class="form-control" id="colour_code" name="colour_code" value="{{ variant.colour_code }}">
+                    <input type="color" class="form-control square-color-picker" id="colour_code" name="colour_code" value="{{ variant.colour_code }}" required>
                 </div>
+                
                 <div class="form-group">
                     <label for="variant_stock">Stock</label>
                     <input type="number" class="form-control" id="variant_stock" name="variant_stock" value="{{ variant.variant_stock }}">
@@ -39,7 +40,6 @@
                     <input type="checkbox" class="form-check-input" id="variant_status" name="variant_status" {% if variant.variant_status %}checked{% endif %}>
                     <label class="form-check-label" for="variant_status">Active</label>
                 </div>
-                
                 {% if variant_images  %}
                 <div class="mt-4">
                     <h5>Current Images</h5>
@@ -106,6 +106,13 @@
 .small-text {
     font-size: 0.8em;
     line-height: 1.2;
+}
+.square-color-picker {
+    width: 40px; /* Set the width of the color picker */
+    height: 40px; /* Set the height of the color picker */
+    padding: 0;
+    margin-bottom: 20px;
+    border: none;
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.6/cropper.js"></script>

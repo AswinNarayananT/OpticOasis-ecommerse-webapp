@@ -13,7 +13,9 @@ from django.db.models.functions import Lower
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from userpanel.models import Wishlist
-
+from django.core.exceptions import ValidationError
+import re
+from django.db import DataError
 
 
 # Create your views here.
@@ -41,6 +43,37 @@ def create_product(request):
         is_active = request.POST.get('is_active') == 'on'
         thumbnail = request.FILES.get('thumbnail')
 
+        stripped_product_name = product_name.strip()
+        stripped_product_description = product_description.strip()
+        stripped_price = price.strip() if price else '0'
+        stripped_offer_price = offer_price.strip() if offer_price else '0'
+
+        if not re.match("^[A-Za-z ]+$", stripped_product_name):
+            messages.error(request, 'Product name must contain only letters and spaces.')
+            return redirect('product:create-product')
+        
+        if len(stripped_product_name) < 3:
+            messages.error(request, 'Product name must be at least 3 characters long.')
+            return redirect('product:create-product')
+
+        try:
+            price = float(stripped_price)
+            offer_price = float(stripped_offer_price)
+            if price < 0 or offer_price < 0:
+                raise ValidationError('Price and Offer Price cannot be negative.')
+            if offer_price > price:
+                raise ValidationError('Offer price cannot be greater than the regular price.')
+        except ValueError:
+            messages.error(request, 'Price and Offer Price must be valid numbers.')
+            return redirect('product:create-product')
+        except ValidationError as e:
+            messages.error(request, str(e))
+            return redirect('product:create-product')
+
+        if Products.objects.filter(product_name__iexact=stripped_product_name).exists():
+            messages.error(request, f'Product with the name "{stripped_product_name}" already exists.')
+            return redirect('product:create-product')
+
         product_category = Category.objects.get(id=product_category_id) if product_category_id else None
         product_brand = Brand.objects.get(id=product_brand_id) if product_brand_id else None
 
@@ -58,37 +91,83 @@ def create_product(request):
         )
         product.save()
 
+        messages.success(request, f'Product "{product_name}" created successfully.')
         return redirect('product:list-product')
 
     categories = Category.objects.all()
     brands = Brand.objects.all()
     return render(request, 'admin_side/product/create_product.html', {'categories': categories, 'brands': brands})
 
+
+
 @admin_required
 def edit_product(request, product_id):
     product = get_object_or_404(Products, id=product_id)
+    
     if request.method == 'POST':
-        product.product_name = request.POST.get('product_name')
-        product.product_description = request.POST.get('product_description')
+        product_name = request.POST.get('product_name')
+        product_description = request.POST.get('product_description')
         product_category_id = request.POST.get('product_category')
         product_brand_id = request.POST.get('product_brand')
-        product.price = request.POST.get('price')
-        product.offer_price = request.POST.get('offer_price')
+        price = request.POST.get('price').strip()
+        offer_price = request.POST.get('offer_price').strip()
+        is_active = request.POST.get('is_active') == 'on'
+        thumbnail = request.FILES.get('thumbnail')
 
-        if request.FILES.get('thumbnail'):
-            product.thumbnail = request.FILES.get('thumbnail')
-        product.is_active = request.POST.get('is_active') == 'on'
+        stripped_product_name = product_name.strip()
+        stripped_product_description = product_description.strip()
+
+        if not re.match("^[A-Za-z ]+$", stripped_product_name):
+            messages.error(request, 'Product name must contain only letters and spaces.')
+            return redirect('product:edit-product', product_id=product_id)
+
+        if len(stripped_product_name) < 3:
+            messages.error(request, 'Product name must be at least 3 characters long.')
+            return redirect('product:edit-product', product_id=product_id)
+
+        try:
+            price = float(price)
+            offer_price = float(offer_price)
+            if price < 0 or offer_price < 0:
+                raise ValidationError('Price and Offer Price cannot be negative.')
+            if offer_price > price:
+                raise ValidationError('Offer price cannot be greater than the regular price.')
+        except ValueError:
+            messages.error(request, 'Price and Offer Price must be valid numbers.')
+            return redirect('product:edit-product', product_id=product_id)
+        except ValidationError as e:
+            messages.error(request, str(e))
+            return redirect('product:edit-product', product_id=product_id)
+
+        if Products.objects.filter(product_name__iexact=product_name).exclude(id=product_id).exists():
+            messages.error(request, f'Product with the name "{stripped_product_name}" already exists.')
+            return redirect('product:edit-product', product_id=product_id)
+
+        product.product_name = product_name
+        product.product_description = product_description
+        product.price = price
+        product.offer_price = offer_price
+        product.is_active = is_active
+
+        if thumbnail:
+            product.thumbnail = thumbnail
 
         product.product_category = Category.objects.get(id=product_category_id) if product_category_id else None
         product.product_brand = Brand.objects.get(id=product_brand_id) if product_brand_id else None
 
-        product.updated_at = timezone.now()  # Update the updated_at timestamp
+        product.updated_at = timezone.now() 
         product.save()
+
+        messages.success(request, f'Product "{product_name}" updated successfully.')
         return redirect('product:product-detail', product_id=product_id)
 
     categories = Category.objects.all()
     brands = Brand.objects.all()
-    return render(request, 'admin_side/product/edit_product.html', {'product': product, 'categories': categories, 'brands': brands})
+    return render(request, 'admin_side/product/edit_product.html', {
+        'product': product, 
+        'categories': categories, 
+        'brands': brands,
+    })
 
 
 @admin_required
@@ -121,18 +200,57 @@ def add_images(request, product_id):
 def add_variant(request, product_id):
     product = get_object_or_404(Products, id=product_id)
     variants = Product_Variant.objects.filter(product=product)
-    
+
     if request.method == 'POST':
         size = request.POST.get('size')
         colour_name = request.POST.get('colour_name')
         variant_stock = request.POST.get('variant_stock')
-        variant_status = request.POST.get('variant_status') == 'on'
+        variant_status = request.POST.get('variant_status')
         colour_code = request.POST.get('colour_code')
 
-        if Product_Variant.objects.filter(product=product, colour_name=colour_name, colour_code=colour_code).exists():
-            messages.error(request, "A variant with this color name and color code already exists.")
+        if not size:
+            messages.error(request, 'Size is required.')
             return redirect('product:add-variant', product_id=product_id)
-        
+
+        stripped_colour_name = colour_name.strip()
+        if not re.match("^[A-Za-z ]+$", stripped_colour_name):
+            messages.error(request, 'Color name must contain only letters and spaces.')
+            return redirect('product:add-variant', product_id=product_id)
+
+        try:
+            variant_stock = int(variant_stock)
+            if variant_stock < 0:
+                raise ValidationError('Variant stock cannot be negative.')
+        except ValueError:
+            messages.error(request, 'Variant stock must be a valid number.')
+            return redirect('product:add-variant', product_id=product_id)
+        except ValidationError as e:
+            messages.error(request, str(e))
+            return redirect('product:add-variant', product_id=product_id)
+
+        if variant_status not in ['0', '1']:
+            messages.error(request, 'Invalid variant status.')
+            return redirect('product:add-variant', product_id=product_id)
+        variant_status = bool(int(variant_status))
+
+        name_exists = Product_Variant.objects.filter(
+            product=product,
+            colour_name=stripped_colour_name
+        ).exists()
+
+        if name_exists:
+            messages.error(request, 'A variant with this color name already exists.')
+            return redirect('product:add-variant', product_id=product_id)
+
+        code_exists = Product_Variant.objects.filter(
+            product=product,
+            colour_code=colour_code
+        ).exists()
+
+        if code_exists:
+            messages.error(request, 'A variant with this color code already exists.')
+            return redirect('product:add-variant', product_id=product_id)
+
         variant = Product_Variant.objects.create(
             product=product,
             size=size,
@@ -142,14 +260,13 @@ def add_variant(request, product_id):
             colour_code=colour_code
         )
 
-        return redirect('product:add-variant-image', product_variant_id=variant.id)  
+        messages.success(request, 'Variant added successfully.')
+        return redirect('product:add-variant-image', product_variant_id=variant.id)
 
     return render(request, 'admin_side/variant/add_variant.html', {'product': product, 'variants': variants})
 
-
 def add_variant_image(request, product_variant_id):
     product_variant = get_object_or_404(Product_Variant, id=product_variant_id)
-    
     if request.method == 'POST':
         images = request.FILES.getlist('images')
         
@@ -174,10 +291,7 @@ def delete_image(request, image_id):
 
 def variant_detail(request, product_id):
     product = get_object_or_404(Products, id=product_id)
-    
-    
     variants = Product_Variant.objects.filter(product=product).prefetch_related('product_variant_images_set')
-    
     context = {
         'product': product,
         'variants': variants,
@@ -192,18 +306,61 @@ def variant_status(request, variant_id):
     return redirect('product:variant-detail', variant.product.id)
 
 
-
 @admin_required
 def edit_variant(request, variant_id):
     variant = get_object_or_404(Product_Variant, id=variant_id)
     variant_images = Product_variant_images.objects.filter(product_variant=variant)
-    
+
     if request.method == 'POST':
-        variant.size = request.POST.get('variant_size')
-        variant.colour_name = request.POST.get('colour_name')
-        variant.colour_code = request.POST.get('colour_code')
-        variant.variant_stock = request.POST.get('variant_stock')
-        variant.variant_status = request.POST.get('variant_status') == 'on'
+        size = request.POST.get('variant_size')
+        colour_name = request.POST.get('colour_name')
+        colour_code = request.POST.get('colour_code')
+        variant_stock = request.POST.get('variant_stock')
+        variant_status = request.POST.get('variant_status') == 'on'
+
+        stripped_colour_name = colour_name.strip() if colour_name else ''
+        stripped_colour_code = colour_code.strip() if colour_code else ''
+
+        if not re.match("^[A-Za-z ]+$", stripped_colour_name):
+            messages.error(request, 'Color name must contain only letters and spaces.')
+            return redirect('product:edit-variant', variant_id=variant_id)
+
+
+        if not stripped_colour_code:
+            messages.error(request, 'Color code is required.')
+            return redirect('product:edit-variant', variant_id=variant_id)
+
+        if Product_Variant.objects.filter(product=variant.product, colour_name=stripped_colour_name).exclude(id=variant_id).exists():
+            messages.error(request, 'A variant with this color name already exists.')
+            return redirect('product:edit-variant', variant_id=variant_id)
+
+        if Product_Variant.objects.filter(product=variant.product, colour_code=stripped_colour_code).exclude(id=variant_id).exists():
+            messages.error(request, 'A variant with this color code already exists.')
+            return redirect('product:edit-variant', variant_id=variant_id)
+
+        try:
+            variant_stock = int(variant_stock)
+            if variant_stock < 0:
+                raise ValidationError('Stock cannot be negative.')
+        except ValueError:
+            messages.error(request, 'Stock must be a valid integer.')
+            return redirect('product:edit-variant', variant_id=variant_id)
+        except ValidationError as e:
+            messages.error(request, str(e))
+
+        if not stripped_colour_name:
+            messages.error(request, 'Color name is required.')
+            return redirect('product:edit-variant', variant_id=variant_id)
+
+        if not stripped_colour_code:
+            messages.error(request, 'Color code is required.')
+            return redirect('product:edit-variant', variant_id=variant_id)
+
+        variant.size = size
+        variant.colour_name = stripped_colour_name
+        variant.colour_code = stripped_colour_code
+        variant.variant_stock = variant_stock
+        variant.variant_status = variant_status
 
         if request.FILES.get('images'):
             Product_variant_images.objects.create(
@@ -211,10 +368,19 @@ def edit_variant(request, variant_id):
                 images=request.FILES.get('images')
             )
         
-        variant.save()
+        try:
+            variant.save()
+            messages.success(request, 'Variant updated successfully.')
+        except DataError:
+            messages.error(request, 'The value for one or more fields is out of range.')
+            return redirect('product:edit-variant', variant_id=variant_id)
+
         return redirect('product:variant-detail', variant.product.id)
-    
-    return render(request, 'admin_side/variant/edit_variant.html', {'variant': variant,'variant_images': variant_images,})
+
+    return render(request, 'admin_side/variant/edit_variant.html', {'variant': variant, 'variant_images': variant_images})
+
+
+
 
 
 # user side product fuctions

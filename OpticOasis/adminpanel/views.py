@@ -8,7 +8,21 @@ from accounts.forms import UserRegistrationForm
 from accounts.models import User  
 from utils.decorators import admin_required
 from datetime import datetime
-from orders.models import OrderMain
+from orders.models import OrderMain ,OrderSub
+from django.db.models import Sum
+from django.utils.timezone import now
+from django.utils.timezone import now, timedelta
+from product.models import Products , Product_Variant , Product_variant_images
+from django.db.models import Sum, Count
+from django.utils.timezone import now
+from datetime import timedelta
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
+from django.db.models import Sum, Count, F, Q
+from brand.models import Brand
+from category.models import Category
+
 # from django.views.decorators.csrf import csrf_protect
 
 # Create your views here.
@@ -31,10 +45,60 @@ def admin_login(request):
     return render(request, 'admin_side/admin/admin_login.html')
 
 
+
 @admin_required
 def admin_dashboard(request):
-    orders = OrderMain.objects.filter(order_status="Delivered")
-    return render(request, 'admin_side/admin/admin_dashboard.html', {'orders': orders})
+    delivered_orders = OrderMain.objects.filter(order_status='Delivered')
+
+    total_order_amount = delivered_orders.aggregate(Sum('final_amount'))['final_amount__sum'] or 0
+    total_order_count = delivered_orders.count()
+
+    current_month = now().month
+    current_year = now().year
+
+    monthly_orders = OrderMain.objects.filter(date__year=current_year, date__month=current_month)
+    monthly_earnings = monthly_orders.aggregate(Sum('final_amount'))['final_amount__sum'] or 0
+    total_discounts_given = monthly_orders.aggregate(Sum('discount_amount'))['discount_amount__sum'] or 0
+
+    last_7_days = [now().date() - timedelta(days=i) for i in range(7)][::-1]
+    sales_data = []
+    for day in last_7_days:
+        day_sales = OrderMain.objects.filter(order_status='Delivered', date=day).aggregate(Sum('final_amount'))['final_amount__sum'] or 0
+        sales_data.append(day_sales)
+
+     # Best selling calculations
+    best_selling_product = Products.objects.filter(
+        product_variant__ordersub__main_order__order_status='Delivered'
+    ).annotate(
+        sales_count=Count('product_variant__ordersub')
+    ).order_by('-sales_count').first()
+
+    best_selling_category = Category.objects.filter(
+        products__product_variant__ordersub__main_order__order_status='Delivered'
+    ).annotate(
+        sales_count=Count('products__product_variant__ordersub')
+    ).order_by('-sales_count').first()
+
+    best_selling_brand = Brand.objects.filter(
+        products__product_variant__ordersub__main_order__order_status='Delivered'
+    ).annotate(
+        sales_count=Count('products__product_variant__ordersub')
+    ).order_by('-sales_count').first()
+    
+    context = {
+        'total_order_amount': total_order_amount,
+        'total_order_count': total_order_count,
+        'monthly_earnings': monthly_earnings,
+        'total_discounts_given': total_discounts_given,
+        'sales_data': sales_data,
+        'days': [day.strftime("%A") for day in last_7_days],
+        'best_selling_category': best_selling_category,
+        'best_selling_brand': best_selling_brand,
+        'best_selling_product': best_selling_product,
+    }
+    
+    return render(request, 'admin_side/admin/admin_dashboard.html', context)
+
 
 
 def sales_report(request):

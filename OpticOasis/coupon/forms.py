@@ -24,18 +24,22 @@ class CouponForm(forms.ModelForm):
 
     def clean_minimum_amount(self):
         min_amount = self.cleaned_data.get('minimum_amount')
+        if min_amount < 1000:
+            raise forms.ValidationError("Minimum amount must be greater than 1000.")
         if min_amount < 0:
             raise forms.ValidationError("Minimum amount cannot be negative.")
         return min_amount
 
     def clean_discount(self):
         discount = self.cleaned_data.get('discount')
-        if discount <= 0 or discount > 100:
-            raise forms.ValidationError("Discount must be greater than zero and less than or equal to 100.")
+        if discount <= 0 or discount > 90:
+            raise forms.ValidationError("Discount must be greater than zero and less than or equal to 90.")
         return discount
 
     def clean_maximum_amount(self):
         max_amount = self.cleaned_data.get('maximum_amount')
+        if max_amount >= 6000:
+            raise forms.ValidationError("Maximum amount must be less than 6000.")
         if max_amount < 0:
             raise forms.ValidationError("Maximum amount cannot be negative.")
         return max_amount
@@ -58,8 +62,8 @@ class CouponForm(forms.ModelForm):
         maximum_amount = cleaned_data.get('maximum_amount')
         discount = cleaned_data.get('discount')
 
-        if discount and (discount <= 0 or discount > 100):
-            self.add_error('discount', "Discount must be between 1 and 100.")
+        if discount and (discount <= 0 or discount > 90):
+            self.add_error('discount', "Discount must be between 1 and 90.")
 
         if maximum_amount and maximum_amount < 0:
             self.add_error('maximum_amount', "Maximum amount cannot be negative.")
