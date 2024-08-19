@@ -1,0 +1,76 @@
+{% extends 'user_side/user_base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="page-header breadcrumb-wrap">
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="{% url 'home_page' %}" rel="nofollow"><i class="fi-rs-home mr-5"></i>Home</a>
+            <span></span> About Us
+        </div>
+    </div>
+</div>
+
+<div class="page-content pt-50">
+    <div class="container">
+        <div class="row">
+            <div class="col-xl-10 col-lg-12 m-auto">
+                <section class="row align-items-center mb-50">
+                    <div class="col-lg-6">
+                        <img src="{% static 'images/about-us-image.jpg' %}" alt="About Optic Oasis" class="border-radius-15 mb-md-3 mb-lg-0 mb-sm-4">
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="pl-25">
+                            <h2 class="mb-30">Welcome to Optic Oasis</h2>
+                            <p class="mb-25">At Optic Oasis, we're passionate about helping you see the world clearly and stylishly. As a premier online destination for eyewear, we offer a curated selection of glasses, sunglasses, and eye care products designed to meet your unique needs and personal style.</p>
+                            <p class="mb-50">Our journey began with a simple idea: to make quality eyewear accessible to everyone. Today, we're proud to offer a wide range of products, from prescription glasses to trendy sunglasses and essential screen glasses, all at competitive prices.</p>
+                        </div>
+                    </div>
+                </section>
+                <section class="text-center mb-50">
+                    <h2 class="title style-3 mb-40">What Sets Us Apart</h2>
+                    <div class="row">
+                        <div class="col-lg-4 col-md-6 mb-24">
+                            <div class="featured-card">
+                                <img src="{% static 'images/icon-quality.png' %}" alt="Quality Products">
+                                <h4>Quality Products</h4>
+                                <p>We partner with leading brands and manufacturers to ensure every product meets our high standards.</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-24">
+                            <div class="featured-card">
+                                <img src="{% static 'images/icon-user-friendly.png' %}" alt="User-Friendly Experience">
+                                <h4>User-Friendly Experience</h4>
+                                <p>Our website is designed with you in mind, making it easy to find, compare, and purchase the perfect eyewear.</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 mb-24">
+                            <div class="featured-card">
+                                <img src="{% static 'images/icon-value.png' %}" alt="Great Value">
+                                <h4>Great Value</h4>
+                                <p>Enjoy competitive prices, regular offers, and exclusive coupons to make your purchase even more affordable.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="row align-items-center mb-50">
+                    <div class="col-lg-6 pr-30">
+                        <h2 class="mb-25">Our Commitment to You</h2>
+                        <p class="mb-30">At Optic Oasis, customer satisfaction is our top priority. We're committed to:</p>
+                        <ul class="mb-50">
+                            <li>✓ Offering a diverse range of eyewear to suit all tastes and needs</li>
+                            <li>✓ Providing expert advice and support throughout your shopping journey</li>
+                            <li>✓ Ensuring fast, secure shipping and hassle-free returns</li>
+                            <li>✓ Continuously improving our products and services based on your feedback</li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-6">
+                        <img src="{% static 'images/commitment-image.jpg' %}" alt="Our Commitment" class="border-radius-15 mb-md-3 mb-lg-0 mb-sm-4">
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

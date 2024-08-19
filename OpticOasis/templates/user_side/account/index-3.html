@@ -2,7 +2,137 @@
 {% load static %}
 {% block content %}
     
-    <style>
+<style>
+    .product-grid-4 {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 30px; /* Add top margin to the product grid */
+    }
+
+    .product-card-wrapper {
+        padding: 15px; /* Add padding around each card */
+    }
+
+    .product-cart-wrap {
+        background-color: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-cart-wrap:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transform: translateY(-3px);
+    }
+
+    .product-img-action-wrap {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .product-img {
+        position: relative;
+        padding-top: 100%; /* 1:1 Aspect Ratio */
+    }
+
+    .product-img img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-action-1 {
+        position: absolute;
+        bottom: -50px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        transition: bottom 0.3s ease;
+    }
+
+    .product-cart-wrap:hover .product-action-1 {
+        bottom: 10px;
+    }
+
+    .action-btn {
+        background-color: #fff;
+        color: #333;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 5px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .action-btn:hover {
+        background-color: #333;
+        color: #fff;
+    }
+
+    .product-content-wrap {
+        padding: 15px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-category a {
+        color: #777;
+        font-size: 14px;
+        text-decoration: none;
+    }
+
+    .product-content-wrap h2 {
+        font-size: 16px;
+        margin: 10px 0;
+    }
+
+    .product-content-wrap h2 a {
+        color: #333;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .product-content-wrap h2 a:hover {
+        color: #007bff;
+    }
+
+    .product-discount {
+        font-size: 14px;
+        color: #28a745;
+        margin-bottom: 5px;
+    }
+
+    .product-price {
+        margin-top: auto;
+    }
+
+    .offer-price {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .old-price {
+        font-size: 14px;
+        text-decoration: line-through;
+        color: #777;
+        margin-left: 5px;
+    }
+
+
         .slider-img {
             height: 500px; /* Set your desired fixed height */
             width: 100%;
@@ -12,8 +142,10 @@
         .banner-img-fill {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: fit;
+            display: block; 
         }
+        
         
     </style>
     <main class="main">
@@ -30,7 +162,8 @@
                                                 <a class="animated btn btn-brush btn-brush-3" href="shop-product-right.html"> Shop Now </a>
                                             </div>
                                             <div class="slider-img">
-                                                <img class="banner-img-fill" src="https://opticone.ae/wp-content/uploads/2020/10/RAYBAN-NEW-banner-layout.jpg" alt="">
+                                                <img class="banner-img-fill" src="{% static 'images/ray-ban-banner-1.jpg' %}" alt="">
+                                                {% comment %} <img class="banner-img-fill" src="https://opticone.ae/wp-content/uploads/2020/10/RAYBAN-NEW-banner-layout.jpg" alt=""> {% endcomment %}
                                             </div>
                                         </div>
                                     </div>
@@ -46,7 +179,7 @@
                                                 <a class="animated btn btn-brush btn-brush-3" href="shop-product-right.html"> Shop Now </a>
                                             </div>
                                             <div class="slider-img">
-                                                <img class="banner-img-fill" src="https://www.vmd.co.nz/images/brand/main/33_Jaguar%20Sunglass%20banner%201920x796px_Jaguar_SS21_Sun_37461.jpg" alt="">
+                                                <img class="banner-img-fill" src="{% static 'images/33_Jaguar Sunglass banner 1920x796px_Jaguar_SS21_Sun_37461.jpg' %}" alt="">
                                             </div>
                                         </div>
                                     </div>
@@ -58,89 +191,76 @@
                 </div>
             </div>
         </section>
-        
-        <section class="product-tabs section-padding wow fadeIn animated">
-            <div class="container">
-                <div class="tab-header">
-                    <ul class="nav nav-tabs" id="myTab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="nav-tab-one" data-bs-toggle="tab" data-bs-target="#tab-one" type="button" role="tab" aria-controls="tab-one" aria-selected="true">New added</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="nav-tab-two" data-bs-toggle="tab" data-bs-target="#tab-two" type="button" role="tab" aria-controls="tab-two" aria-selected="false">Popular</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="nav-tab-three" data-bs-toggle="tab" data-bs-target="#tab-three" type="button" role="tab" aria-controls="tab-three" aria-selected="false">Featured</button>
-                        </li>
-                    </ul>
-                    <a href="#" class="view-more d-none d-md-flex">View More<i class="fi-rs-angle-double-small-right"></i></a>
-                </div>
-                        <h2 class="text-center mb-4">Our Brands</h2>
-                        {% if brands %}
-                        {% for brand in brands %}
+
+                        {% comment %} <h2 class="text-center mb-4">Our Brands</h2>
+                {% if brands %}
+                    {% for brand in brands %}
                         <div class="banner">
                             <img src="{{ brand.brand_image.url }}" alt="Banner Image">
                         </div>
-                        <!--End nav-tabs-->
-                <div class="tab-content wow fadeIn animated" id="myTabContent">
-                    <div class="tab-pane fade show active" id="tab-one" role="tabpanel" aria-labelledby="tab-one">
-                        <div class="row product-grid-4">
-                            {% for product in products %}
-                            <div class="col-lg-3 col-md-4 col-12 col-sm-6">
-                                <div class="product-cart-wrap mb-30">
-                                    <div class="product-img-action-wrap">
-                                       <div class="product-img product-img-zoom">
-                                            {% comment %} <a href="{% url 'user-panel:product-detail' product.id%}"> {% endcomment %}
-                                                {% if product.thumbnail %}
-                                                  <a href="{% url 'product:product-detail-page' product.id %}"> <img class="default-img" src="{{ product.thumbnail.url }}" alt="{{ product.product_name }}"></a> 
-                                                {% else %}
-                                                    <img class="default-img" src="{% static 'path/to/default/image.jpg' %}" alt="{{ product.product_name }}">
-                                                {% endif %}
-                                            </a>
-                                        </div>
-                                        <div class="product-action-1">
-                                            <a aria-label="Quick view" class="action-btn hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal"><i class="fi-rs-eye"></i></a>
-                                            <a aria-label="Add To Wishlist" class="action-btn hover-up" href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
-                                            <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html"><i class="fi-rs-shuffle"></i></a>
-                                        </div>
-                                        <div class="product-badges product-badges-position product-badges-mrg">
-                                            <span class="hot">Hot</span>
+                    {% endfor %}
+                {% endif %}   {% endcomment %}
+        
+                <section class="product-tabs section-padding wow fadeIn animated">
+                    <div class="container">
+                        <div class="tab-header">
+                            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="nav-tab-one" data-bs-toggle="tab" data-bs-target="#tab-one" type="button" role="tab" aria-controls="tab-one" aria-selected="true">New added</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="nav-tab-two" data-bs-toggle="tab" data-bs-target="#tab-two" type="button" role="tab" aria-controls="tab-two" aria-selected="false">Popular</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="nav-tab-three" data-bs-toggle="tab" data-bs-target="#tab-three" type="button" role="tab" aria-controls="tab-three" aria-selected="false">Featured</button>
+                                </li>
+                            </ul>
+                            <a href="#" class="view-more d-none d-md-flex">View More<i class="fi-rs-angle-double-small-right"></i></a>
+                        </div>
+                
+                        <div class="tab-content wow fadeIn animated" id="myTabContent">
+                            <div class="tab-pane fade show active" id="tab-one" role="tabpanel" aria-labelledby="tab-one">
+                                <div class="row product-grid-4">
+                                    {% for product in products %}
+                                    <div class="col-lg-3 col-md-4 col-12 col-sm-6 product-card-wrapper">
+                                        <div class="product-cart-wrap">
+                                            <div class="product-img-action-wrap">
+                                                <div class="product-img product-img-zoom">
+                                                    <a href="{% url 'product:product-detail-page' product.id %}">
+                                                        {% if product.thumbnail %}
+                                                            <img class="default-img" src="{{ product.thumbnail.url }}" alt="{{ product.product_name }}">
+                                                        {% else %}
+                                                            <img class="default-img" src="{% static 'path/to/default/image.jpg' %}" alt="{{ product.product_name }}">
+                                                        {% endif %}
+                                                    </a>
+                                                </div>
+                                                {% comment %} <div class="product-action-1">
+                                                    <a aria-label="Quick view" class="action-btn hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal"><i class="fi-rs-eye"></i></a>
+                                                    <a aria-label="Add To Wishlist" class="action-btn hover-up" href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
+                                                    <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html"><i class="fi-rs-shuffle"></i></a>
+                                                </div> {% endcomment %}
+                                            </div>
+                                            <div class="product-content-wrap">
+                                                <div class="product-category">
+                                                    <a href="shop-grid-right.html">{{ product.product_category }}</a>
+                                                </div>
+                                                <h2><a href="shop-product-right.html">{{ product.product_name }}</a></h2>
+                                                <div class="product-discount">
+                                                    <span>Discount: {{ product.percentage_discount }}%</span>
+                                                </div>
+                                                <div class="product-price">
+                                                    <span class="offer-price">₹{{ product.offer_price }}</span>
+                                                    <span class="old-price">₹{{ product.price }}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="product-content-wrap">
-                                        <div class="product-category">
-                                            <a href="shop-grid-right.html"> {{ product.product_category}}</a>
-                                        </div>
-                                        <h2><a href="shop-product-right.html">{{ product.product_name }}</a></h2>
-                                        <div class="rating-result" title="90%">
-                                            <span>
-                                                <span>Discount: {{ product.percentage_discount }}%</span>
-                                            </span>
-                                        </div>
-                                        <div class="product-price">
-                                            <span>Offer Price: ₹{{ product.offer_price }}</span><br>
-                                            <span class="old-price"> ₹{{ product.price }}</span>
-                                        </div>
-                                        <div class="product-action-1 show">
-                                            <a aria-label="Add To Cart" class="action-btn hover-up" href="shop-cart.html"><i class="fi-rs-shopping-bag-add"></i></a>
-                                        </div>
-                                    </div>
+                                    {% endfor %}
                                 </div>
                             </div>
-                            
-                            {% endfor %}
-                            
-                            
-                    
                         </div>
-              
-                        
-                        {% endfor %}
-                        {% endif %}  
-
-                
-            </div>
-        </section>
+                    </div>
+                </section>
         
         <section class="pt-25 pb-20">
             <div class="container wow fadeIn animated">

@@ -34,3 +34,4 @@ class EmailAuthenticationForm(AuthenticationForm):
             raise ValidationError(
                 "This account is inactive. Please contact support.",
             )
+        

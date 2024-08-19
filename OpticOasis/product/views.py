@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import Products, Category, Brand ,Product_images ,Product_Variant,Product_variant_images 
+from .models import Products, Category, Brand ,Product_images ,Product_Variant,Product_variant_images ,Review
 from utils.decorators import admin_required
 from django.http import HttpResponse
 from django.utils import timezone
@@ -7,7 +7,6 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from .models import Products, Review
 from django.db.models import Avg, Count, Sum, Prefetch
 from django.db.models.functions import Lower
 from django.http import JsonResponse
@@ -16,7 +15,6 @@ from userpanel.models import Wishlist
 from django.core.exceptions import ValidationError
 import re
 from django.db import DataError
-
 
 # Create your views here.
 
@@ -387,6 +385,8 @@ def edit_variant(request, variant_id):
 
 def product_detail_page(request, product_id):
     product = get_object_or_404(Products, id=product_id)
+    star_ratings = product.get_star_rating_distribution()
+    has_purchased = product.user_has_purchased(request.user)
     variants = Product_Variant.objects.filter(product=product).prefetch_related('product_variant_images_set')
 
     selected_variant = variants.first() 
@@ -402,7 +402,7 @@ def product_detail_page(request, product_id):
 
     
     for variant in variants:
-        variant.image_urls = ','.join([image.images.url for image in variant.product_variant_images_set.all()])
+        variant.image_urls = [image.images.url for image in variant.product_variant_images_set.all()[:5]]
 
     
     reviews = Review.objects.filter(product=product).order_by('-created_at')
@@ -420,6 +420,8 @@ def product_detail_page(request, product_id):
         'reviews': reviews,
         'average_rating': average_rating,
         'user_wishlist': user_wishlist,
+        'star_ratings': star_ratings,
+        'has_purchased': has_purchased,
     }
 
     return render(request, 'user_side/product/product_details2.html', context)
@@ -462,6 +464,18 @@ def add_review(request, product_id):
             comment=comment
         )
     return redirect('product:product-detail-page', product_id=product.id)
+
+
+def delete_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id)
+
+    if review.user == request.user:
+        review.delete()
+        messages.success(request, 'Your review has been deleted.')
+    else:
+        messages.error(request, 'You are not authorized to delete this review.')
+
+    return redirect('product:product-detail-page', product_id=review.product.id)
 
 
 def shop_page(request):

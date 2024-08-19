@@ -70,13 +70,14 @@
                     <div class="header-action-right d-flex align-items-center">
                         <a href="{% url 'userpanel:wishlist' %}" class="me-3 position-relative">
                             <i class="bi bi-heart fs-4"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success" id="wishlist-count">
                                 {{ wishlist_item_count }}
                             </span>
+
                         </a>
                         <a href="{% url 'cart:cart-view' %}" class="me-3 position-relative">
                             <i class="bi bi-cart fs-4"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success" id="cart-count">
                                 {{ cart_item_count }}
                             </span>
                         </a>
@@ -108,9 +109,8 @@
                                 <ul class="d-flex justify-content-center">
                                     <li><a class="active" href="{% url 'home_page' %}">Home <i></i></a></li>
                                     <li><a href="{% url 'product:shop-page' %}">Shop</a></li>
-                                    <li class="position-static"><a href="#">Mega menu</a></li>
-                                    <li><a href="#">About</a></li>
-                                    <li><a href="#">Contact</a></li>
+                                    <li><a href="{% url 'about-us' %}">About</a></li>
+                                    {% comment %} <li><a href="{% url 'contact-us' %}">Contact</a></li> {% endcomment %}
                                 </ul>
                             </nav>
                         </div>
@@ -251,6 +251,18 @@
     <script src="{% static 'user_side/assets/js/main.js' %}"></script>
     <script src="{% static 'user_side/assets/js/shop.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function updateCounts() {
+            $.ajax({
+                url: '{% url "cart:update-counts" %}',
+                type: 'GET',
+                success: function(data) {
+                    $('#cart-count').text(data.cart_item_count);
+                    $('#wishlist-count').text(data.wishlist_item_count);
+                }
+            });
+        }
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
             {% if messages %}

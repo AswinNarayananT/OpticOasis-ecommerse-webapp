@@ -1,7 +1,7 @@
 from django.db import models
 from django.db import models
 from accounts.models import *
-from product.models import *
+from product.models import Product_Variant
 from userpanel.models import *
 from decimal import Decimal
 

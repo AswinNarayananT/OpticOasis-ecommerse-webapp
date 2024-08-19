@@ -404,6 +404,7 @@ def razorpay_callback(request):
 
 
 def order_failure(request, order_id):
+    print('you fail')
     order = get_object_or_404(OrderMain, id=order_id)
     context = {
         'order': order,

@@ -10,6 +10,10 @@ from django.urls import reverse
 from coupon.models import Coupon,UserCoupon
 from django.utils import timezone
 from decimal import Decimal
+from django.http import JsonResponse
+from .context_processors import cart_and_wishlist_counts
+
+
 
 
 # Create your views here.
@@ -34,7 +38,9 @@ def cart_view(request):
     }
     return render(request, 'user_side/cart/cart_view.html', context)
 
-
+def update_counts(request):
+    counts = cart_and_wishlist_counts(request)
+    return JsonResponse(counts)
 
 @login_required(login_url='/login/')
 def add_to_cart(request):

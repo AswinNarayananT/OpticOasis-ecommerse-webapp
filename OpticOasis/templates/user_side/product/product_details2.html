@@ -1,41 +1,32 @@
 {% extends 'user_side/user_base.html' %}
 {% load static %}
 {% block content %}
+<!-- Add some CSS for the star rating -->
 <style>
     .star-rating {
-        direction: rtl;
-        font-size: 2rem;
         display: flex;
-        justify-content: center;
         cursor: pointer;
     }
-    
+
     .star {
-        color: #ccc;
+        font-size: 24px;
+        color: #ddd;
     }
-    
-    .star.selected,
-    .star:hover,
-    .star:hover ~ .star {
-        color: #f39c12;
-    }
-    .star-rating-display {
-        display: flex;
-    }
-    
-    .star {
-        font-size: 2rem;
-        color: #ccc; /* Default star color */
-    }
-    
+
     .star.filled {
-        color: gold; /* Filled star color */
+        color: #f5c518; /* Gold color for filled stars */
     }
-    .icon-red {
-        color: red;
-        fill: red;
+    .comment-form .form-group button.button-contactForm {
+        background-color: #007bff; /* Your preferred button color */
+        border-color: #007bff;
     }
-    </style>
+    
+    .comment-form .form-group button.button-contactForm:hover {
+        background-color: #0056b3; /* Button color on hover */
+        border-color: #0056b3;
+    }
+    
+</style>
 <main class="main">
     <div class="page-header breadcrumb-wrap">
         <div class="container">
@@ -90,10 +81,16 @@
                                             <span> Brands: <a href="shop-grid-right.html">{{ product.product_brand}}</a></span>
                                         </div>
                                         <div class="product-rate-cover text-end">
-                                            <div class="product-rate d-inline-block">
-                                                <div class="product-rating" style="width:90%"></div>
+                                            <div class="star-rating-display" data-rating="{{ product.get_average_rating }}">
+                                                {% with rating=product.get_average_rating|default:0 %}
+                                                    <span class="star {% if rating >= 1 %}filled{% endif %}">&#9733;</span>
+                                                    <span class="star {% if rating >= 2 %}filled{% endif %}">&#9733;</span>
+                                                    <span class="star {% if rating >= 3 %}filled{% endif %}">&#9733;</span>
+                                                    <span class="star {% if rating >= 4 %}filled{% endif %}">&#9733;</span>
+                                                    <span class="star {% if rating >= 5 %}filled{% endif %}">&#9733;</span>
+                                                {% endwith %}
                                             </div>
-                                            <span class="font-small ml-5 text-muted"> (25 reviews)</span>
+                                            <span class="font-small ml-5 text-muted">({{ product.reviews.count }} reviews)</span>
                                         </div>
                                     </div>
                                     <div class="clearfix product-price-cover">
@@ -140,6 +137,7 @@
                                                         <a href="#" class="size-selector {% if size.size == selected_size %}active{% endif %}" data-size="{{ size.size }}">
                                                             {{ size.size }}
                                                         </a>
+                                                        
                                                         <li>
                                                             Availability:
                                                             {% if size.variant_stock > 0 %}
@@ -166,9 +164,6 @@
                                                 </li>
                                             {% endif %}
                                         </ul>
-                                        
-                                        
-                                       
                                     </div>
                                     
                                     <div class="bt-1 border-color-1 mt-30 mb-30"></div>
@@ -240,126 +235,120 @@
                                         <li class="social-linkedin"><a href="#"><img src="assets/imgs/theme/icons/icon-pinterest.svg" alt=""></a></li>
                                     </ul>
                                 </div>
-                                <h3 class="section-title style-1 mb-30 mt-30">Reviews (3)</h3>
-                                <!--Comments-->
+
+                                <h3 class="section-title style-1 mb-30 mt-30">Reviews ({{ reviews.count }})</h3>
+
+                                <!-- Comment Form -->
+<div class="comment-form">
+    <h4 class="mb-15">Add a review</h4>
+
+    {% if has_purchased %}
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <form method="post" class="form-contact comment_form" action="{% url 'product:add-review' product.id %}" id="commentForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <textarea class="form-control w-100" name="comment" id="comment" cols="30" rows="4" placeholder="Write Comment" required></textarea>
+                            </div>
+                        </div>
+                        <div class="col-12 text-center">
+                            <div class="star-rating" id="star-rating" style="display: inline-block;">
+                                <span class="star" data-value="1">&#9733;</span>
+                                <span class="star" data-value="2">&#9733;</span>
+                                <span class="star" data-value="3">&#9733;</span>
+                                <span class="star" data-value="4">&#9733;</span>
+                                <span class="star" data-value="5">&#9733;</span>
+                            </div>
+                            <input type="hidden" id="rating" name="rating" value="0" required>
+                            <p class="text-muted mt-2">Please give a rating before submitting your review.</p>
+                        </div>
+                    </div>
+                    <div class="form-group text-center">
+                        <button type="submit" class="button button-contactForm">Submit Review</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% else %}
+        <p class="text-muted">You must purchase this product before you can leave a review.</p>
+    {% endif %}
+</div>
+
+                                                                
+                                <!-- Comments Area -->
                                 <div class="comments-area style-2">
                                     <div class="row">
-                                        <div class="col-lg-8 d-flex">
-                                            <div >
-                                                <h4 class="mb-30">Customer questions & answers</h4>
-                                                {% for review in reviews %}
-                                                {% if review %}
-                                                <div class="comment-list">
-                                                    <div class="single-comment justify-content-between d-flex">
-                                                        <div class="user justify-content-between d-flex">
-                                                            <div class="thumb text-center">
-                                                                <img src="{% static 'user_side/assets/imgs/page/avatar-6.jpg' %}" alt="">
-                                                                <h6><a href="#">{{ review.user }}</a></h6>
-                                                                <p class="font-xxs">Since 2012</p>
-                                                            </div>
-                                                            <div class="desc">
-                                                                
-                                                                    <div class="star-rating-display" data-rating="{{ review.rating }}">
-                                                                        <span class="star">&#9733;</span>
-                                                                        <span class="star">&#9733;</span>
-                                                                        <span class="star">&#9733;</span>
-                                                                        <span class="star">&#9733;</span>
-                                                                        <span class="star">&#9733;</span>
-                                                                    </div>
-                                                                
-                                                                <p>{{ review.comment }}</p>
-                                                                <div class="d-flex justify-content-between">
-                                                                    <div class="d-flex align-items-center">
-                                                                        <p class="font-xs mr-30">{{ review.created_at }} </p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div>
-                                                                <div style="margin-left:100px; width:50px;" >
-                                                                    <form action="" method="post">
-                                                                        {% csrf_token %}
-                                                                        <button class="btn btn-danger " type="submit">Delete</button>
-                                                                    </form>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    {% endif %}
-                                                    {% endfor %}
-                                                </div>
-                                                    <div>
-                                                        <div class="col-lg-4">
-                                                            <h4 class="mb-30">Customer reviews</h4>
-                                                            <div class="d-flex mb-30">
-                                                                <div class="star-rating-display" data-rating="{{ products.get_average_rating }}">
-                                                                    <span class="star">&#9733;</span>
-                                                                    <span class="star">&#9733;</span>
-                                                                    <span class="star">&#9733;</span>
-                                                                    <span class="star">&#9733;</span>
-                                                                    <span class="star">&#9733;</span>
-                                                                </div>
-                                                            
-                                                            <h6></h6>
+                                        <div class="col-lg-8">
+                                            <h4 class="mb-30">Customer questions & answers</h4>
+                                            {% for review in reviews %}
+                                            <div class="comment-list mb-4">
+                                                <div class="single-comment p-3 bg-light rounded shadow-sm">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <div class="thumb text-center mr-3">
+                                                            <img src="{% static 'user_side/assets/imgs/page/avatar-6.jpg' %}" alt="" class="img-thumbnail rounded-circle" style="width: 60px;">
                                                         </div>
                                                         <div>
-                                                            <div class="progress">
-                                                                <span>5 star</span>
-                                                                <div class="progress-bar" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
-                                                            </div>
-                                                            <div class="progress">
-                                                                <span>4 star</span>
-                                                                <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
-                                                            </div>
-                                                            <div class="progress">
-                                                                <span>3 star</span>
-                                                                <div class="progress-bar" role="progressbar" style="width: 45%;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">45%</div>
-                                                            </div>
-                                                            <div class="progress">
-                                                                <span>2 star</span>
-                                                                <div class="progress-bar" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100">65%</div>
-                                                            </div>
-                                                            <div class="progress mb-30">
-                                                                <span>1 star</span>
-                                                                <div class="progress-bar" role="progressbar" style="width: 85%;" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">85%</div>
-                                                            </div>
-                                                            <a href="#" class="font-xs text-muted">How are ratings calculated?</a>
+                                                            <h6 class="mb-0"><a href="#" class="text-dark">{{ review.user.first_name }}</a></h6>
+                                                            <p class="mb-0 text-muted font-italic">{{ review.user.email }}</p>
+                                                            <p class="font-xxs text-muted">Member since {{ review.user.date_joined|date:"Y" }}</p>
                                                         </div>
+                                                    </div>
+                                                    <div class="desc">
+                                                        <!-- Star Rating Display -->
+                                                        <div class="star-rating-display mb-2">
+                                                            {% for star in "★★★★★" %}
+                                                                <span class="star {% if forloop.counter <= review.rating %}filled{% endif %}">&#9733;</span>
+                                                            {% endfor %}
+                                                        </div>
+                                                        <p class="mb-2">{{ review.comment }}</p>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <p class="font-xs text-muted">{{ review.created_at|date:"F j, Y" }}</p>
+                                                            
+                                                            {% if request.user == review.user %}
+                                                            <form action="{% url 'product:delete-review' review.id %}" method="post" class="mb-0">
+                                                                {% csrf_token %}
+                                                                <button class="btn btn-danger btn-sm" type="submit" title="Delete Review">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 24 24">
+                                                                        <path d="M3 6h18v2H3V6zm2 3v10c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V9H5zm6 0h2v10h-2V9zm-4 0h2v10H7V9zm8 0h2v10h-2V9zM16 4l-1-1H9L8 4H5v2h14V4h-3z"/>
+                                                                    </svg>
+                                                                </button>
+                                                            </form>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
+                                            {% endfor %}
                                         </div>
+                                        <div class="col-lg-4">
+                                            <h4 class="mb-30">Customer reviews</h4>
                                         
-                                    </div>
-                                </div>
-                                <!--comment form-->
-                                <div class="comment-form">
-                                    <h4 class="mb-15">Add a review</h4>
-                                    <div class="row">
-                                        <div class="col-lg-8 col-md-12">
-                                            <form method="post" class="form-contact comment_form" action="{% url 'product:add-review' product.id %}" id="commentForm">
-                                                {% csrf_token %}
-                                                <div class="row">
-                                                    <div class="col-12">
-                                                        <div class="form-group">
-                                                            <textarea class="form-control w-100" name="comment" id="comment" cols="30" rows="9" placeholder="Write Comment" required></textarea>
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <div class="star-rating" id="star-rating">
-                                                            <span class="star" data-value="1">&#9733;</span>
-                                                            <span class="star" data-value="2">&#9733;</span>
-                                                            <span class="star" data-value="3">&#9733;</span>
-                                                            <span class="star" data-value="4">&#9733;</span>
-                                                            <span class="star" data-value="5">&#9733;</span>
-                                                        </div>
-                                                        <input type="hidden" id="rating" name="rating" value="0" required>
-                                                    </div>
+                                            <!-- Star Rating Display -->
+                                            <div class="d-flex mb-3 align-items-center">
+                                                <div class="star-rating-display">
+                                                    {% for star in "★★★★★" %}
+                                                        <span class="star {% if forloop.counter <= product.get_average_rating %}filled{% endif %}">&#9733;</span>
+                                                    {% endfor %}
                                                 </div>
-                                                <div class="form-group">
-                                                    <button type="submit" class="button button-contactForm">Submit Review</button>
-                                                </div>
-                                            </form>
+                                                <span class="ml-2 text-muted">{{ product.get_average_rating|floatformat:1 }}/5</span>
+                                            </div>
+                                        
+                                            <!-- Progress Bars for Star Ratings -->
+                                            {% for star, percentage in star_ratings.items %}
+                                            <div class="progress mb-3" style="height: 15px;">
+                                                <span class="mr-2">{{ star }} star</span>
+                                                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ percentage }}%;" aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100">{{ percentage }}%</div>
+                                            </div>
+                                            {% endfor %}
+                                        
+                                            <a href="#" class="font-xs text-muted">How are ratings calculated?</a>
                                         </div>
                                     </div>
+                                    
                                 </div>
+
                         </div>
                         <div class="row mt-60">
                             <div class="col-12">
@@ -572,27 +561,42 @@
     
         $('.color-select').on('click', function(e) {
             e.preventDefault();
-            $('.color-select').removeClass('selected'); 
-            $(this).addClass('selected'); 
-    
+            $('.color-select').removeClass('selected');
+            $(this).addClass('selected');
+        
             var imageUrls = $(this).data('image-urls').split(',');
             var variantId = $(this).data('variant-id');
-            
+        
             // Update main image slider
             $('#product-image-slider .main-image').each(function(index, img) {
-                var adjustedIndex = index - 1;
-                if (adjustedIndex >= 0 && adjustedIndex < imageUrls.length && imageUrls[adjustedIndex]) {
-                    $(img).attr('src', imageUrls[adjustedIndex]);
+                if (index === 0) {
+                    // Always show the first image
+                    $(img).attr('src', imageUrls[0]);
+                    $(img).show(); // Ensure it's visible
+                } else if (index - 1 < imageUrls.length) {
+                    // Update the rest of the images
+                    $(img).attr('src', imageUrls[index - 1]);
+                    $(img).show(); // Ensure it's visible
+                } else {
+                    $(img).attr('src', imageUrls[0]);
                 }
             });
-    
+        
             // Update thumbnails
             $('#thumbnails-slider .thumbnail-item img').each(function(index, img) {
-                var adjustedIndex = index;
-                if (adjustedIndex >= 0 && adjustedIndex < imageUrls.length && imageUrls[adjustedIndex]) {
-                    $(img).attr('src', imageUrls[adjustedIndex]);
+                if (index < imageUrls.length) {
+                    $(img).attr('src', imageUrls[index]);
+                    $(img).closest('.thumbnail-item').show();
                 } else {
-                    $(img).attr('src', ''); // Clear if no image is available
+                    $(img).closest('.thumbnail-item').hide();
+                }
+            });
+        
+            // Reattach click event to new thumbnails using event delegation
+            $('#thumbnails-slider').off('click').on('click', '.thumbnail-item img', function() {
+                var thumbnailSrc = $(this).attr('src');
+                if (thumbnailSrc) {
+                    updateMainImage(thumbnailSrc);
                 }
             });
     
@@ -665,6 +669,7 @@
                         });
                         // Update button status after adding item to cart
                         updateButtonStatus();
+                        updateCounts();
                     } else {
                         Swal.fire({
                             icon: 'error',
@@ -705,9 +710,8 @@
     });
     </script>
     
-</script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</script> 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const wishlistToggle = document.querySelector('.wishlist-toggle');
@@ -723,7 +727,7 @@
                 timer: 3000
             });
         }
-
+        
         wishlistToggle.addEventListener('click', function(e) {
             e.preventDefault();
             const selectedVariant = document.querySelector('.color-select.selected');
@@ -755,9 +759,11 @@
                 if (data.status === 'added') {
                     wishlistIcon.classList.add('icon-red');
                     showNotification('success', 'Product added to wishlist');
+                    updateCounts();
                 } else if (data.status === 'removed') {
                     wishlistIcon.classList.remove('icon-red');
                     showNotification('info', 'Product removed from wishlist');
+                    updateCounts();
                 }
             })
             .catch(error => {
@@ -829,5 +835,85 @@
 <script>
     const userWishlist = {{ user_wishlist|safe }};
 </script>
+<!-- JavaScript for Star Rating -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const stars = document.querySelectorAll('#star-rating .star');
+        const ratingInput = document.getElementById('rating');
+    
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const value = this.getAttribute('data-value');
+                ratingInput.value = value;
+    
+                stars.forEach(star => {
+                    if (star.getAttribute('data-value') <= value) {
+                        star.classList.add('filled');
+                    } else {
+                        star.classList.remove('filled');
+                    }
+                });
+            });
+    
+            star.addEventListener('mouseover', function() {
+                const value = this.getAttribute('data-value');
+    
+                stars.forEach(star => {
+                    if (star.getAttribute('data-value') <= value) {
+                        star.classList.add('hovered');
+                    } else {
+                        star.classList.remove('hovered');
+                    }
+                });
+            });
+    
+            star.addEventListener('mouseout', function() {
+                stars.forEach(star => {
+                    star.classList.remove('hovered');
+                });
+            });
+        });
+    });
+    
+</script>
+<script>
+    function enableZoom(img) {
+        const container = img.parentElement;
+        const zoomLevel = 2; // Adjust the zoom level as needed
+        let isZoomed = false;
+    
+        container.addEventListener('mousemove', (e) => {
+            if (!isZoomed) return;
+    
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+    
+            const percentX = (x / rect.width) * 100;
+            const percentY = (y / rect.height) * 100;
+    
+            img.style.transformOrigin = `${percentX}% ${percentY}%`;
+        });
+    
+        container.addEventListener('mouseenter', () => {
+            isZoomed = true;
+            img.style.transform = `scale(${zoomLevel})`;
+        });
+    
+        container.addEventListener('mouseleave', () => {
+            isZoomed = false;
+            img.style.transform = 'scale(1)';
+        });
+    }
+    
+    // Initialize zoom for the current image when the DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        const images = document.querySelectorAll('.product-image-slider .main-image');
+        images.forEach((img) => {
+            enableZoom(img);
+        });
+    });
+</script>
+
 
 {% endblock %}

@@ -1,8 +1,131 @@
 {% load static %}
+<style>
+    .product-card-wrapper {
+        padding: 15px;
+    }
+
+    .product-cart-wrap {
+        background-color: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-cart-wrap:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transform: translateY(-3px);
+    }
+
+    .product-img-action-wrap {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .product-img {
+        position: relative;
+        padding-top: 100%; /* 1:1 Aspect Ratio */
+    }
+
+    .product-img img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-action-1 {
+        position: absolute;
+        bottom: -50px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        transition: bottom 0.3s ease;
+    }
+
+    .product-cart-wrap:hover .product-action-1 {
+        bottom: 10px;
+    }
+
+    .action-btn {
+        background-color: #fff;
+        color: #333;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .action-btn:hover {
+        background-color: #333;
+        color: #fff;
+    }
+
+    .product-content-wrap {
+        padding: 15px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-category a {
+        color: #777;
+        font-size: 14px;
+        text-decoration: none;
+    }
+
+    .product-content-wrap h2 {
+        font-size: 16px;
+        margin: 10px 0;
+    }
+
+    .product-content-wrap h2 a {
+        color: #333;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .product-content-wrap h2 a:hover {
+        color: #007bff;
+    }
+
+    .product-discount {
+        font-size: 14px;
+        color: #28a745;
+        margin-top: 5px;
+    }
+
+    .product-price {
+        margin-top: auto;
+    }
+
+    .offer-price {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .old-price {
+        font-size: 14px;
+        text-decoration: line-through;
+        color: #777;
+        margin-left: 5px;
+    }
+</style>
 
 {% for product in products %}
-    <div class="col-lg-4 col-md-4 col-sm-6 col-12">
-        <div class="product-cart-wrap mb-30">
+    <div class="col-lg-4 col-md-4 col-sm-6 col-12 product-card-wrapper">
+        <div class="product-cart-wrap">
             <div class="product-img-action-wrap">
                 <div class="product-img product-img-zoom">
                     <a href="{% url 'product:product-detail-page' product.id %}">
@@ -17,32 +140,23 @@
                         {% endwith %}
                     </a>
                 </div>
-                <div class="product-action-1">
-                    <a aria-label="Add To Wishlist" class="action-btn hover-up" href="#"><i class="fi-rs-heart"></i></a>
-                </div>
             </div>
             <div class="product-content-wrap">
                 <div class="product-category">
                     <a href="#">{{ product.product_brand.brand_name }}</a>
                 </div>
-                <h5><a href="{% url 'product:product-detail-page' product.id %}">{{ product.product_name }}</a></h5>
-                <div class="product-rate-cover">
-                    <div class="product-rate d-inline-block">
-                        <div class="product-rating" style="width: {{ product.average_rating|floatformat:0 }}%"></div>
-                    </div>
-                    <span class="font-small ml-5 text-muted">({{ product.reviews.count }})</span>
-                </div>
+                <h2><a href="{% url 'product:product-detail-page' product.id %}">{{ product.product_name }}</a></h2>
                 <div class="product-price">
                     {% if product.offer_price < product.price %}
-                        <span>₹ {{ product.offer_price }}</span>
-                        <span class="old-price">₹ {{ product.price }}</span>
+                        <span class="offer-price">₹{{ product.offer_price }}</span>
+                        <span class="old-price">₹{{ product.price }}</span>
                     {% else %}
-                        <span>₹ {{ product.price }}</span>
+                        <span class="offer-price">₹{{ product.price }}</span>
                     {% endif %}
                 </div>
                 {% if product.percentage_discount > 0 %}
-                    <div class="product-badge">
-                        <span class="best">Discount:-{{ product.percentage_discount }}%</span>
+                    <div class="product-discount">
+                        <span>Discount: {{ product.percentage_discount }}%</span>
                     </div>
                 {% endif %}
             </div>

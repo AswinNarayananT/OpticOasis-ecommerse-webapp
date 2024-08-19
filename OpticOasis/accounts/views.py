@@ -12,13 +12,24 @@ from datetime import timedelta
 from django.views.decorators.csrf import csrf_protect
 from dateutil.parser import parse
 from django.contrib.auth import login, logout
-from django.contrib.auth.forms import AuthenticationForm
 from .forms import EmailAuthenticationForm
 from brand.models import Brand
 from category.models import Category
-from product.models import Products,Product_images,Product_Variant
+from product.models import Products
 from .signals import user_registered
-from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
+from django.http import HttpResponse
+from django.contrib.auth.forms import PasswordResetForm
+from django.db.models.query_utils import Q
+from django.utils.http import urlsafe_base64_encode
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes
+from django.template.loader import render_to_string
+from django.core.mail import send_mail, BadHeaderError
+from django.http import HttpResponse
+from django.contrib.auth.forms import SetPasswordForm
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
 
 
 # Create your views here.
@@ -143,4 +154,74 @@ def logout_view(request):
     messages.success(request, "You have successfully logged out.")
     return redirect('home_page')
 
-        
+
+def about_us(request):
+   return render(request,'user_side/account/aboutus.html') 
+
+def contact_us(request):
+    return render(request,'user_side/account/contact.html') 
+
+def password_reset_request(request):
+    if request.method == "POST":
+        password_reset_form = PasswordResetForm(request.POST)
+        if password_reset_form.is_valid():
+            data = password_reset_form.cleaned_data['email']
+            associated_users = User.objects.filter(Q(email=data))
+            if associated_users.exists():
+                for user in associated_users:
+                    subject = "Password Reset Requested"
+                    email_template_name = "user_side/account/password_reset_email.txt"
+                    c = {
+                        "email": user.email,
+                        'domain': '127.0.0.1:8000',
+                        'site_name': 'Optic Oasis',
+                        "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+                        "user": user,
+                        'token': default_token_generator.make_token(user),
+                        'protocol': 'http',
+                    }
+                    email_content = render_to_string(email_template_name, c)
+                    try:
+                        send_mail(
+                            subject,
+                            email_content,
+                            settings.DEFAULT_FROM_EMAIL,
+                            [user.email],
+                            fail_silently=False,
+                        )
+                    except BadHeaderError:
+                        return HttpResponse('Invalid header found.')
+                    return redirect("password-reset-done")
+    
+    password_reset_form = PasswordResetForm()
+    return render(request, "user_side/account/password_reset.html", {"password_reset_form": password_reset_form})
+
+
+def password_reset_done(request):
+    return render(request, 'user_side/account/password_reset_done.html')
+
+def password_reset_confirm(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == 'POST':
+            form = SetPasswordForm(user, request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Your password has been set. You may go ahead and log in now.')
+                return redirect('password-reset-complete')
+        else:
+            form = SetPasswordForm(user)
+        return render(request, 'user_side/account/password_reset_confirm.html', {'form': form})
+    else:
+        messages.error(request, 'The password reset link was invalid, possibly because it has already been used. Please request a new password reset.')
+        return redirect('password-reset')
+
+def password_reset_complete(request):
+    return render(request, 'user_side/account/password_reset_complete.html')
+
+
