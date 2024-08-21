@@ -63,7 +63,7 @@ class Product_Variant(models.Model):
 class Product_images(models.Model):
     product = models.ForeignKey(Products, on_delete=models.CASCADE,null=True)
     images = models.ImageField(
-        upload_to="product_images", default=r"C:\Users\ASWIN\ANT\Brototype\week9\E-com\OpticOasis\static\images\No_Image-1024.webp"
+        upload_to="product_images"
     )
 
     def __str__(self):
@@ -72,7 +72,7 @@ class Product_images(models.Model):
 class Product_variant_images(models.Model):
     product_variant = models.ForeignKey(Product_Variant, on_delete=models.CASCADE)
     images = models.ImageField(
-        upload_to="product_images", default=r"C:\Users\ASWIN\ANT\Brototype\week9\E-com\OpticOasis\static\images\No_Image-1024.webp"
+        upload_to="product_images"
     )
 
     def __str__(self):

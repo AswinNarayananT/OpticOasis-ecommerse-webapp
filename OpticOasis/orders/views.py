@@ -25,7 +25,7 @@ import uuid
 def admin_order_list(request):
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', 'Show all')
-    items_per_page = request.GET.get('items_per_page', 20)
+    items_per_page = request.GET.get('items_per_page', 10)
 
 
     orders = OrderMain.objects.all().order_by('-id')
@@ -52,8 +52,9 @@ def admin_order_list(request):
 
 def returned_orders(request):
     search_query = request.GET.get('search', '')
-    items_per_page = int(request.GET.get('items_per_page', 20))
+    items_per_page = int(request.GET.get('items_per_page', 4))
 
+    # Filter orders with return requests
     orders = OrderMain.objects.filter(returnrequest__isnull=False).distinct()
     
     if search_query:
@@ -61,7 +62,7 @@ def returned_orders(request):
 
     order_list = []
     for order in orders:
-        return_requests = ReturnRequest.objects.filter(order_main=order)
+        return_requests = ReturnRequest.objects.filter(order_main=order).order_by('-created_at')
         has_pending_returns = return_requests.filter(status='Pending').exists()
         order_list.append({
             'order': order,
@@ -78,6 +79,7 @@ def returned_orders(request):
         'search_query': search_query,
         'items_per_page': items_per_page,
     }
+
     return render(request, 'admin_side/order/return_order.html', context)
 
 @admin_required
@@ -95,6 +97,7 @@ def change_order_status(request, order_id):
 
         current_status = order.order_status
         invalid_transitions = {
+            'Awaiting payment': ['Pending'],
             'Confirmed': ['Pending', 'Awaiting payment'],
             'Shipped': ['Confirmed', 'Awaiting payment', 'Pending'],
             'Delivered': ['Shipped', 'Confirmed', 'Awaiting payment', 'Pending'],
@@ -109,7 +112,19 @@ def change_order_status(request, order_id):
         else:
             order.order_status = new_status
             if new_status == 'Delivered' and not order.payment_status:
-                order.payment_status = True
+                order.payment_status = True 
+            if new_status == 'Canceled' and order.payment_status:
+                refund_amount = order.final_amount
+                wallet, created = Wallet.objects.get_or_create(user=order.user)
+                wallet.balance += refund_amount 
+                wallet.save()
+                WalletTransaction.objects.create(
+                    wallet=wallet,
+                    amount=refund_amount,
+                    description=f'Refund for order {order.order_id}',
+                    transaction_type='credit' 
+                )
+
             order.save()
             messages.success(request, 'Order status updated successfully.')
         
@@ -140,7 +155,7 @@ def update_return_request(request, return_request_id):
                 refund_amount = item_total_cost - item_discount_amount
                 
                 item.is_active = False
-                item.status='Return Approved'
+                item.status='Returned'
                 item.save()
                 all_canceled = not main_order.ordersub_set.filter(is_active=True).exists()
                 
@@ -162,7 +177,7 @@ def update_return_request(request, return_request_id):
                     
                     refund_amount += item_refund_amount
                     item.is_active = False
-                    item.status='Return Approved'
+                    item.status='Returned'
                     item.save()
 
                 order.order_status = 'Returned'
@@ -186,20 +201,20 @@ def update_return_request(request, return_request_id):
                 messages.success(request, 'Return request approved. No payment was made or payment status is not confirmed.')
 
         elif action == "reject":
-            return_request.status = "Rejected"
-            return_request.save()
             if return_request.order_sub: 
                 item = return_request.order_sub
                 item.status='Return Rejected'
+                item.main_order.order_status='Return Rejected'
             else:
                 order = return_request.order_main
                 active_items = order.ordersub_set.filter(is_active=True)
                 for item in active_items:
                     item.status='Return Rejected'
                     item.save()
-                order.order_status = 'Returned'
+                order.order_status = 'Return Rejected'
                 order.save()    
-
+            return_request.status = "Rejected"
+            return_request.save()
             messages.success(request, 'Return request rejected.')
         
         return redirect('orders:returned-orders') 
@@ -210,10 +225,6 @@ def update_return_request(request, return_request_id):
 def generate_unique_order_id():
     return str(uuid.uuid4())
 
-
-import logging
-
-logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def order_placed(request):

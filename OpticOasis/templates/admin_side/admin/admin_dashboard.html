@@ -75,182 +75,211 @@
                 </div>
             </div>
         </section>
-        <section class="best-sellers mt-4">
-          <div class="row">
-            <div class="col-lg-4">
-              <div class="card card-body mb-4">
-                <article class="icontext">
-                  <span class="icon icon-sm rounded-circle bg-info-light">
-                    <i class="text-info material-icons md-local_offer"></i>
-                  </span>
-                  <div class="text">
-                    <h6 class="mb-1 card-title">Best-Selling Product</h6>
-                    <span>{{ best_selling_product.product_name }}</span>
-                    <span class="text-sm">Sold: {{ best_selling_product.sales_count }}</span>
-                  </div>
-                </article>
-              </div>
-            </div>
-            <div class="col-lg-4">
-              <div class="card card-body mb-4">
-                <article class="icontext">
-                  <span class="icon icon-sm rounded-circle bg-success-light">
-                    <i class="text-success material-icons md-store"></i>
-                  </span>
-                  <div class="text">
-                    <h6 class="mb-1 card-title">Best-Selling Brand</h6>
-                    <span>{{ best_selling_brand.brand_name }}</span>
-                    <span class="text-sm">Sold: {{ best_selling_brand.sales_count }}</span>
-                  </div>
-                </article>
-              </div>
-            </div>
-            <div class="col-lg-4">
-              <div class="card card-body mb-4">
-                <article class="icontext">
-                  <span class="icon icon-sm rounded-circle bg-warning-light">
-                    <i class="text-warning material-icons md-category"></i>
-                  </span>
-                  <div class="text">
-                    <h6 class="mb-1 card-title">Best-Selling Category</h6>
-                    <span>{{ best_selling_category.category_name }}</span>
-                    <span class="text-sm">Sold: {{ best_selling_category.sales_count }}</span>
-                  </div>
-                </article>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-
-        <section class="charts mt-4">
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="chart-container rounded-2 p-3">
-                        <h3 class="fs-6 mb-3">Sales Over the Last 7 Days</h3>
-                        <canvas id="myChart"></canvas>
-                    </div>
+        <div class="row">
+            <div class="col-xl-8 col-lg-12">
+                <div class="card mb-4">
+                    <article class="card-body">
+                        <h5 class="card-title">Sale statistics</h5>
+                        <canvas id="orderChart"></canvas>
+                    </article>
                 </div>
-                <div class="col-lg-6">
-                    <div class="chart-container rounded-2 p-3">
-                        <h3 class="fs-6 mb-3">Another Chart</h3>
-                        <canvas id="myChart2"></canvas>
-                    </div>
-                </div>
+                
             </div>
-        </section>
+            <div class="col-xl-4 col-lg-12">
+                <div class="card mb-4">
+                    <article class="card-body">
+                        <h4 class="card-title">Monthly User Registrations</h4>
+                        <canvas id="userChart"></canvas>
+                    </article>
+                </div>
+                
+            </div>
+        </div>
 
-        <section class="admins mt-4">
-            <div class="row">
-                {% for admin in admins %}
-                <div class="col-md-6">
-                    <div class="box">
-                        <div class="admin d-flex align-items-center rounded-2 p-3 mb-4">
-                            <div class="img">
-                                <img class="img-fluid rounded-pill" width="75" height="75"
-                                     src="{{ admin.image_url }}" alt="admin">
-                            </div>
-                            <div class="ms-3">
-                                <h3 class="fs-5 mb-1">{{ admin.name }}</h3>
-                                <p class="mb-0">{{ admin.description }}</p>
-                            </div>
+
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="card card-body mb-4">
+                    <article class="icontext">
+                        <div class="text">
+                            <h6 class="mb-1 card-title"></h6>
+                            <span><a href="{% url 'best-products' %}">Best Selling Product</a></span>
+                            <span class="text-sm">
+                            </span>
+                            
                         </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </section>
-
-        <section class="statis mt-4 text-center">
-            <div class="row">
-                <div class="col-md-6 col-lg-3 mb-4 mb-lg-0">
-                    <div class="box bg-primary p-3">
-                        <i class="uil-eye"></i>
-                        <h3>{{ page_views }}</h3>
-                        <p class="lead">Page views</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 mb-4 mb-lg-0">
-                    <div class="box bg-danger p-3">
-                        <i class="uil-user"></i>
-                        <h3>{{ user_registered }}</h3>
-                        <p class="lead">User registered</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 mb-4 mb-md-0">
-                    <div class="box bg-warning p-3">
-                        <i class="uil-shopping-cart"></i>
-                        <h3>{{ product_sales }}</h3>
-                        <p class="lead">Product sales</p>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <div class="box bg-success p-3">
-                        <i class="uil-feedback"></i>
-                        <h3>{{ transactions }}</h3>
-                        <p class="lead">Transactions</p>
-                    </div>
+                    </article>
                 </div>
             </div>
-        </section>
-
-        <section class="charts mt-4">
-            <div class="chart-container p-3">
-                <h3 class="fs-6 mb-3">Chart title number three</h3>
-                <div style="height: 300px">
-                    <canvas id="chart3" width="100%"></canvas>
+            <div class="col-lg-3">
+                <div class="card card-body mb-4">
+                    <article class="icontext">
+                        <div class="text">
+                            <h6 class="mb-1 card-title"></h6>
+                            <span><a href="{% url 'best-categories' %}">Best Selling Category</a></span>
+                            <span class="text-sm">
+                            </span>
+                        </div>
+                    </article>
                 </div>
             </div>
-        </section>
+            <div class="col-lg-3">
+                <div class="card card-body mb-4">
+                    <article class="icontext">
+                        <div class="text">
+                            <h6 class="mb-1 card-title"></h6>
+                            <span><a href="{% url 'best-brands' %}">Best Selling Brands</a></span>
+                            <span class="text-sm">
+                            </span>
+                        </div>
+                    </article>
+                </div>
+            </div>
+            
+        </div>
     </div>
 </section>    
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 
 <script>
-    const ctx = document.getElementById('myChart').getContext('2d');
-    const myChart = new Chart(ctx, {
+    Chart.register(ChartDataLabels);
+
+    const orderCtx = document.getElementById('orderChart').getContext('2d');
+    const userCtx = document.getElementById('userChart').getContext('2d');
+
+    const orderGradient = orderCtx.createLinearGradient(0, 0, 0, 400);
+    orderGradient.addColorStop(0, 'rgba(54, 162, 235, 0.8)');
+    orderGradient.addColorStop(1, 'rgba(54, 162, 235, 0.1)');
+
+    const userGradient = userCtx.createLinearGradient(0, 0, 0, 400);
+    userGradient.addColorStop(0, 'rgba(255, 99, 132, 0.8)');
+    userGradient.addColorStop(1, 'rgba(255, 99, 132, 0.1)');
+
+    const commonOptions = {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false,
+            },
+            datalabels: {
+                color: '#fff',
+                anchor: 'end',
+                align: 'top',
+                offset: 5,
+                borderWidth: 2,
+                borderColor: '#fff',
+                borderRadius: 4,
+                backgroundColor: (context) => context.dataset.borderColor,
+                font: {
+                    weight: 'bold',
+                },
+                formatter: (value) => Math.round(value),
+            },
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.1)',
+                },
+            },
+            x: {
+                grid: {
+                    display: false,
+                },
+            },
+        },
+        animation: {
+            duration: 2000,
+            easing: 'easeInOutSine',
+        },
+    };
+
+    function generateWaveData(length) {
+        const data = [];
+        const frequency = 0.1;
+        const amplitude = 10;
+        for (let i = 0; i < length; i++) {
+            data.push(amplitude * Math.sin(frequency * i) + Math.random() * 10);
+        }
+        return data;
+    }
+
+    new Chart(orderCtx, {
         type: 'line',
         data: {
-            labels: {{ days|safe }},
+            labels: {{ labels|safe }},
             datasets: [{
-                label: 'Sales (₹)',
-                data: {{ sales_data|safe }},
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                label: 'Number of Orders',
+                data: generateWaveData({{ labels|length }}),
+                backgroundColor: orderGradient,
                 borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
+                borderWidth: 3,
+                pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                fill: 'start',
+                tension: 0.4,
             }]
         },
         options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
+            ...commonOptions,
+            plugins: {
+                ...commonOptions.plugins,
+                title: {
+                    display: true,
+                    text: 'Monthly Order Trends',
+                    font: {
+                        size: 18,
+                        weight: 'bold',
+                    },
+                    padding: {
+                        top: 10,
+                        bottom: 30,
+                    },
+                },
+            },
         }
     });
-</script>
-<script>
-    const ctx2 = document.getElementById('myChart2').getContext('2d');
-    const myChart2 = new Chart(ctx2, {
+
+    new Chart(userCtx, {
         type: 'bar',
         data: {
-            labels: {{ days|safe }},
+            labels: {{ user_labels|safe }},
             datasets: [{
-                label: 'Another Metric',
-                data: {{ another_metric_data|safe }},
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                label: 'New User Registrations',
+                data: generateWaveData({{ user_labels|length }}),
+                backgroundColor: userGradient,
                 borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1
+                borderWidth: 2,
+                borderRadius: 5,
+                borderSkipped: false,
+                barThickness: 20,
+                maxBarThickness: 30,
             }]
         },
         options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
+            ...commonOptions,
+            plugins: {
+                ...commonOptions.plugins,
+                title: {
+                    display: true,
+                    text: 'Monthly User Registrations',
+                    font: {
+                        size: 18,
+                        weight: 'bold',
+                    },
+                    padding: {
+                        top: 10,
+                        bottom: 20,
+                    },
+                },
+            },
+        },
     });
 </script>
 

@@ -10,18 +10,17 @@ from utils.decorators import admin_required
 from datetime import datetime
 from orders.models import OrderMain ,OrderSub
 from django.db.models import Sum
-from django.utils.timezone import now
+from django.utils import timezone
 from django.utils.timezone import now, timedelta
 from product.models import Products , Product_Variant , Product_variant_images
 from django.db.models import Sum, Count
-from django.utils.timezone import now
 from datetime import timedelta
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.db.models import Sum, Count, F, Q
 from brand.models import Brand
 from category.models import Category
+import json
+from django.db.models.functions import ExtractMonth, ExtractYear, TruncMonth
 
 # from django.views.decorators.csrf import csrf_protect
 
@@ -55,69 +54,163 @@ def admin_dashboard(request):
 
     current_month = now().month
     current_year = now().year
-
-    monthly_orders = OrderMain.objects.filter(date__year=current_year, date__month=current_month)
+    monthly_orders = OrderMain.objects.filter(date__year=current_year, date__month=current_month,order_status='Delivered')
     monthly_earnings = monthly_orders.aggregate(Sum('final_amount'))['final_amount__sum'] or 0
     total_discounts_given = monthly_orders.aggregate(Sum('discount_amount'))['discount_amount__sum'] or 0
 
-    last_7_days = [now().date() - timedelta(days=i) for i in range(7)][::-1]
-    sales_data = []
-    for day in last_7_days:
-        day_sales = OrderMain.objects.filter(order_status='Delivered', date=day).aggregate(Sum('final_amount'))['final_amount__sum'] or 0
-        sales_data.append(day_sales)
 
-     # Best selling calculations
-    best_selling_product = Products.objects.filter(
-        product_variant__ordersub__main_order__order_status='Delivered'
+    monthly_order_count = OrderMain.objects.filter(
+        order_status="Delivered"
     ).annotate(
-        sales_count=Count('product_variant__ordersub')
-    ).order_by('-sales_count').first()
+        month=ExtractMonth('date'),
+        year=ExtractYear('date')
+    ).values('year', 'month').annotate(count=Count('id')).order_by('year', 'month')
 
-    best_selling_category = Category.objects.filter(
-        products__product_variant__ordersub__main_order__order_status='Delivered'
-    ).annotate(
-        sales_count=Count('products__product_variant__ordersub')
-    ).order_by('-sales_count').first()
+    labels = [f'{entry["month"]}/{entry["year"]}' for entry in monthly_order_count]
+    data = [entry['count'] for entry in monthly_order_count]
 
-    best_selling_brand = Brand.objects.filter(
-        products__product_variant__ordersub__main_order__order_status='Delivered'
-    ).annotate(
-        sales_count=Count('products__product_variant__ordersub')
-    ).order_by('-sales_count').first()
+    user_registrations = User.objects.annotate(
+        month=TruncMonth('date_joined')
+    ).values('month').annotate(count=Count('id')).order_by('month')
+
+    user_labels = [entry['month'].strftime('%b %Y') for entry in user_registrations]
+    user_data = [entry['count'] for entry in user_registrations]
     
     context = {
         'total_order_amount': total_order_amount,
         'total_order_count': total_order_count,
         'monthly_earnings': monthly_earnings,
         'total_discounts_given': total_discounts_given,
-        'sales_data': sales_data,
-        'days': [day.strftime("%A") for day in last_7_days],
-        'best_selling_category': best_selling_category,
-        'best_selling_brand': best_selling_brand,
-        'best_selling_product': best_selling_product,
+        'labels': json.dumps(labels),
+        'data': json.dumps(data),
+        'user_labels': json.dumps(user_labels),
+        'user_data': json.dumps(user_data)
     }
     
     return render(request, 'admin_side/admin/admin_dashboard.html', context)
 
+def best_selling_products(request):
+    best_selling_products = OrderSub.objects.filter(
+        main_order__order_status="Delivered"
+    ).values(
+        'variant__product__id',
+        'variant__product__product_name'
+    ).annotate(
+        total_sold=Sum('quantity')
+    ).order_by('-total_sold')
+    
+    top_product = best_selling_products.first()
+    
+    return render(request, 'admin_side/admin/best_products.html', {
+        'top_product': top_product,
+        'best_selling_products': best_selling_products
+    })
 
+
+
+def best_selling_categories(request):
+    category_sales = OrderSub.objects.filter(
+        main_order__order_status="Delivered"
+    ).values(
+        'variant__product__product_category__id',
+        'variant__product__product_category__category_name',
+        'variant__product__thumbnail',
+    ).annotate(
+        total_sold=Sum('quantity')
+    ).order_by('-total_sold')
+
+    seen_categories = set()
+    distinct_categories = []
+    for category in category_sales:
+        if category['variant__product__product_category__id'] not in seen_categories:
+            distinct_categories.append(category)
+            seen_categories.add(category['variant__product__product_category__id'])
+
+    top_category = distinct_categories[0] if distinct_categories else None
+    
+    return render(request, 'admin_side/admin/best_categories.html', {
+        'top_category': top_category,
+        'best_selling_categories': distinct_categories,
+    })
+
+def best_selling_brands(request):
+    best_selling_brands = OrderSub.objects.filter(
+        main_order__order_status="Delivered"
+    ).values(
+        'variant__product__product_brand__id',
+        'variant__product__product_brand__brand_name',
+        'variant__product__product_brand__brand_image'  
+    ).annotate(
+        total_sold=Sum('quantity')
+    ).order_by('-total_sold')
+
+    top_brand = best_selling_brands.first()
+
+    return render(request, 'admin_side/admin/best_brands.html', {
+        'top_brand': top_brand,
+        'best_selling_brands': best_selling_brands,
+    })
 
 def sales_report(request):
+    filter_type = request.GET.get('filter', None)
+    now = timezone.now()
+    start_date = end_date = None 
+
+    if filter_type == 'weekly':
+        start_date = now - timedelta(days=now.weekday())
+        end_date = now
+    elif filter_type == 'monthly':
+        start_date = now.replace(day=1)
+        end_date = now
+
+    if start_date and end_date:
+        orders = OrderMain.objects.filter(
+            order_status="Delivered",
+            is_active=True,
+            date__range=[start_date, end_date]
+        )
+    else:
+        orders = OrderMain.objects.filter(
+            order_status="Delivered",
+            is_active=True
+        )
+
+    total_discount = orders.aggregate(total=Sum('discount_amount'))['total'] or 0
+    total_orders = orders.aggregate(total=Count('id'))['total'] or 0
+    total_order_amount = orders.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+
+    return render(request, 'admin_side/admin/salesreport.html', {
+        'orders': orders,
+        'total_discount': total_discount,
+        'total_orders': total_orders,
+        'total_order_amount': total_order_amount
+    })
+
+def order_date_filter(request):
     if request.method == 'POST':
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
-        
+
         if start_date and end_date:
             try:
                 start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
                 end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
             except ValueError:
-                return redirect('admin_panel:sales-report')
-            
-            orders = OrderMain.objects.filter(date__range=[start_date, end_date], order_status="Delivered")
-            return render(request, 'admin_side/dashboard/salesreport.html', {'orders': orders})
-    
-    orders = OrderMain.objects.filter(order_status="Delivered")
-    return render(request, 'admin_side/admin/salesreport.html', {'orders': orders})
+                return redirect('sales-report')
+
+            orders = OrderMain.objects.filter(date__range=[start_date, end_date], order_status="Order Placed")
+            total_discount = orders.aggregate(total=Sum('discount_amount'))['total'] or 0
+            total_orders = orders.aggregate(total=Count('id'))['total'] or 0
+            total_order_amount = orders.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+
+            return render(request, 'admin_side/admin/salesreport.html', {
+                'orders': orders,
+                'total_discount': total_discount,
+                'total_orders': total_orders,
+                'total_order_amount': total_order_amount,
+            })
+
+    return redirect('sales-report')
 
 
 @admin_required

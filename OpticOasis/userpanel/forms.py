@@ -65,11 +65,12 @@ class UserProfileForm(forms.ModelForm):
         model = User
         fields = ['first_name', 'last_name', 'email', 'phone_number']
     
+    def __init__(self, *args, **kwargs):
+        super(UserProfileForm, self).__init__(*args, **kwargs)
+        self.fields['email'].widget.attrs['readonly'] = True 
+    
     def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if User.objects.exclude(pk=self.instance.pk).filter(email=email).exists():
-            raise ValidationError("A user with this email already exists.")
-        return email
+        return self.instance.email
     
     def clean_phone_number(self):
         phone_number = self.cleaned_data.get('phone_number')

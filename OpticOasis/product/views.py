@@ -1,20 +1,19 @@
-from django.shortcuts import render,redirect,get_object_or_404
 from .models import Products, Category, Brand ,Product_images ,Product_Variant,Product_variant_images ,Review
-from utils.decorators import admin_required
-from django.http import HttpResponse
-from django.utils import timezone
-from django.http import JsonResponse
-from django.contrib import messages
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.shortcuts import render,redirect,get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-from django.db.models import Avg, Count, Sum, Prefetch
-from django.db.models.functions import Lower
-from django.http import JsonResponse
+from django.db.models import Prefetch, Avg, Count, Sum
 from django.template.loader import render_to_string
-from userpanel.models import Wishlist
+from django.http import JsonResponse ,HttpResponse
 from django.core.exceptions import ValidationError
-import re
+from django.db.models.functions import Lower
+from utils.decorators import admin_required
+from userpanel.models import Wishlist
+from django.contrib import messages
+from django.utils import timezone
 from django.db import DataError
+import re
+
 
 # Create your views here.
 
@@ -388,6 +387,7 @@ def product_detail_page(request, product_id):
     star_ratings = product.get_star_rating_distribution()
     has_purchased = product.user_has_purchased(request.user)
     variants = Product_Variant.objects.filter(product=product).prefetch_related('product_variant_images_set')
+    related_products = Products.objects.filter(product_brand=product.product_brand).exclude(id=product_id)[:4]
 
     selected_variant = variants.first() 
     variant_images = Product_variant_images.objects.none()
@@ -422,6 +422,7 @@ def product_detail_page(request, product_id):
         'user_wishlist': user_wishlist,
         'star_ratings': star_ratings,
         'has_purchased': has_purchased,
+        'related_products': related_products,
     }
 
     return render(request, 'user_side/product/product_details2.html', context)
@@ -478,10 +479,10 @@ def delete_review(request, review_id):
     return redirect('product:product-detail-page', product_id=review.product.id)
 
 
+
 def shop_page(request):
     brands = Brand.objects.all()
     categories = Category.objects.all()
-    
 
     products = Products.objects.filter(is_active=True)
     search_query = request.GET.get('search_query', '')
@@ -492,7 +493,6 @@ def shop_page(request):
 
     if search_query:
         products = products.filter(product_name__icontains=search_query)
-    
     
     if selected_categories:
         products = products.filter(product_category__id__in=selected_categories)
@@ -507,51 +507,56 @@ def shop_page(request):
         products = products.filter(price__lte=max_price)
 
     sort_by = request.GET.get('sort', 'featured')
-    if sort_by == 'price_low_high':
-        products = products.order_by('price')
-    elif sort_by == 'price_high_low':
-        products = products.order_by('-price')
-    elif sort_by == 'avg_rating':
-        products = products.annotate(avg_rating=Avg('reviews__rating')).order_by('-avg_rating')
-    elif sort_by == 'popularity':
-        products = products.annotate(review_count=Count('reviews')).order_by('-review_count')
-    elif sort_by == 'new_arrivals':
-        products = products.order_by('-created_at')
-    elif sort_by == 'name_az':
-        products = products.order_by(Lower('product_name'))
-    elif sort_by == 'name_za':
-        products = products.order_by(Lower('product_name').desc())
-    elif sort_by == 'inventory':
-        products = products.annotate(
-            total_stock=Sum('product_variant__variant_stock')
-        ).order_by('-total_stock')
+    sort_options = {
+        'price_low_high': 'price',
+        'price_high_low': '-price',
+        'avg_rating': '-avg_rating',
+        'popularity': '-review_count',
+        'new_arrivals': '-created_at',
+        'name_az': Lower('product_name'),
+        'name_za': Lower('product_name').desc(),
+        'inventory': '-total_stock'
+    }
+
+    if sort_by in sort_options:
+        if sort_by == 'avg_rating':
+            products = products.annotate(avg_rating=Avg('-reviews__rating')).order_by(sort_options[sort_by])
+        elif sort_by == 'popularity':
+            products = products.annotate(review_count=Count('reviews')).order_by(sort_options[sort_by])
+        elif sort_by == 'inventory':
+            products = products.annotate(total_stock=Sum('product_variant__variant_stock')).order_by(sort_options[sort_by])
+        else:
+            products = products.order_by(sort_options[sort_by])
 
     products = products.prefetch_related(
-        Prefetch('product_variant_set', 
+        Prefetch('product_variant_set',
                  queryset=Product_Variant.objects.filter(variant_status=True),
                  to_attr='active_variants'),
         'product_variant_set__product_variant_images_set'
     )
 
-    for product in products:
+    paginator = Paginator(products, 6)
+    page = request.GET.get('page')
+
+    try:
+        products_paginated = paginator.page(page)
+    except PageNotAnInteger:
+        products_paginated = paginator.page(1)
+    except EmptyPage:
+        products_paginated = paginator.page(paginator.num_pages)
+
+    for product in products_paginated:
         if product.active_variants:
             variant = product.active_variants[0]
             image = variant.product_variant_images_set.first()
-            if image:
-                product.image_url = image.images.url
-            elif product.thumbnail:
-                product.image_url = product.thumbnail.url
-            else:
-                product.image_url = None 
-        elif product.thumbnail:
-            product.image_url = product.thumbnail.url
+            product.image_url = image.images.url if image else product.thumbnail.url if product.thumbnail else None
         else:
-            product.image_url = None  
+            product.image_url = product.thumbnail.url if product.thumbnail else None
 
     context = {
         'brands': brands,
         'categories': categories,
-        'products': products,
+        'products': products_paginated,
         'current_sort': sort_by,
         'selected_categories': selected_categories,
         'selected_brands': selected_brands,
@@ -561,7 +566,7 @@ def shop_page(request):
     }
     
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        product_html = render_to_string('user_side/product/product_list_partial.html', {'products': products})
-        return JsonResponse({'product_html': product_html})
+        html = render_to_string('user_side/product/product_list_partial.html', {'products': products_paginated})
+        return JsonResponse({'html': html})
     
     return render(request, 'user_side/product/shop_page.html', context)

@@ -14,6 +14,7 @@ import os
 from decouple import config, Csv
 from pathlib import Path
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -67,6 +68,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'adminpanel.middleware.SocialAuthExceptionMiddleware',
+    'adminpanel.middleware.Custom404Middleware',    
 
 ]
 
@@ -204,12 +207,12 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_uid',
     'social_core.pipeline.social_auth.auth_allowed',
     'social_core.pipeline.social_auth.social_user',
-    'social_core.pipeline.social_auth.associate_by_email',
     'social_core.pipeline.user.get_username',
-    'accounts.pipeline.get_additional_fields',  
-    'accounts.pipeline.create_user',            
+    'accounts.pipeline.save_user_details',
+    'accounts.pipeline.set_user_phone_number',
+    'accounts.pipeline.activate_user',
+    'accounts.pipeline.check_if_user_blocked',
     'social_core.pipeline.social_auth.associate_user',
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
-    
 )

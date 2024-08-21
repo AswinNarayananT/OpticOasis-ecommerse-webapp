@@ -82,6 +82,8 @@
                                         <span class="badge bg-success">Delivered</span>
                                         {% elif order.order_status == "Canceled" %}
                                         <span class="badge bg-danger">Canceled</span>
+                                        {% elif order.order_status == "Return requested" %}
+                                        <span class="badge bg-secondary">Return requested</span>
                                         {% elif order.order_status == "Returned" %}
                                         <span class="badge bg-danger">Returned</span>
                                         {% endif %}
@@ -162,30 +164,7 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Return Order Modal -->
-                                            <div class="modal fade" id="returnOrderModal{{ order.id }}" tabindex="-1" aria-labelledby="returnOrderModalLabel{{ order.id }}" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" id="returnOrderModalLabel{{ order.id }}">Return Order</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                        </div>
-                                                        <form method="post" action="{% url 'userpanel:return-order' order.id %}">
-                                                            {% csrf_token %}
-                                                            <div class="modal-body">
-                                                                <div class="mb-3">
-                                                                    <label for="reason" class="form-label">Reason for return</label>
-                                                                    <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
-                                                                </div>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                                <button type="submit" class="btn btn-danger">Return Order</button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            
 
                                             <!-- Cancel Item Modal -->
                                             <div class="modal fade" id="cancelItemModal{{ item.id }}" tabindex="-1" aria-labelledby="cancelItemModalLabel{{ item.id }}" aria-hidden="true">
@@ -234,6 +213,32 @@
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                                     <button type="submit" class="btn btn-danger">Cancel Order</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Return Order Modal -->
+                                <div class="modal fade" id="returnOrderModal{{ order.id }}" tabindex="-1" aria-labelledby="returnOrderModalLabel{{ order.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <!-- Update the id here -->
+                                                <h5 class="modal-title" id="returnOrderModalLabel{{ order.id }}">Return Order</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form method="post" action="{% url 'userpanel:return-order' order.id %}">
+                                                {% csrf_token %}
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label for="reason" class="form-label">Reason for return</label>
+                                                        <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <button type="submit" class="btn btn-danger">Return Order</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -424,67 +429,70 @@
     
 </script>
 <script>
-    // Handle return order form submission
-    const returnOrderForms = document.querySelectorAll('form[action^="{% url 'userpanel:return-order' 0 %}".slice(0, -1)]');
-        
-    returnOrderForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const orderId = form.action.split('/').slice(-2, -1)[0];
-            
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update the UI to reflect the returned order
-                    const orderRow = document.querySelector(`#orderRow${orderId}`);
-                    if (orderRow) {
-                        const statusSpan = orderRow.querySelector('.order-status');
-                        if (statusSpan) {
-                            statusSpan.textContent = 'Returned';
+    document.addEventListener('DOMContentLoaded', () => {
+        // Handle return order form submission
+        const returnOrderForms = document.querySelectorAll('form[action^="/userpanel/return-order/"]');
+    
+        returnOrderForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const orderId = form.action.split('/').slice(-2, -1)[0];
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the UI to reflect the returned order
+                        const orderRow = document.querySelector(`#orderRow${orderId}`);
+                        if (orderRow) {
+                            const statusSpan = orderRow.querySelector('.order-status');
+                            if (statusSpan) {
+                                statusSpan.textContent = 'Returned';
+                            }
+                            
+                            // Remove the return button
+                            const returnButton = orderRow.querySelector('.return-order-btn');
+                            if (returnButton) {
+                                returnButton.remove();
+                            }
                         }
                         
-                        // Remove the return button
-                        const returnButton = orderRow.querySelector('.return-order-btn');
-                        if (returnButton) {
-                            returnButton.remove();
-                        }
-                    }
-                    
-                    // Close the modal
-                    const modalElement = document.querySelector(`#returnOrderModal${orderId}`);
-                    if (modalElement) {
-                        const modalInstance = bootstrap.Modal.getInstance(modalElement);
-                        if (modalInstance) {
-                            modalInstance.hide();
+                        // Close the modal
+                        const modalElement = document.querySelector(`#returnOrderModal${orderId}`);
+                        if (modalElement) {
+                            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                            if (modalInstance) {
+                                modalInstance.hide();
+                            } else {
+                                console.error('Modal instance not found.');
+                            }
                         } else {
-                            console.error('Modal instance not found.');
+                            console.error('Modal element not found.');
                         }
+                        
+                        // Show a success message
+                        alert(data.message);
                     } else {
-                        console.error('Modal element not found.');
+                        // Show an error message
+                        alert(data.message || 'An error occurred while returning the order.');
                     }
-                    
-                    // Show a success message
-                    alert(data.message);
-                } else {
-                    // Show an error message
-                    alert(data.message || 'An error occurred while returning the order.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while processing your request.');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing your request.');
+                });
             });
         });
     });
+    
 </script>
 
 

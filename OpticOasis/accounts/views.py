@@ -38,9 +38,9 @@ User = get_user_model()
 
 def home_page(request):
     brands =Brand.objects.all()
-    categorys=Category.objects.all()
+    categories=Category.objects.all()
     products =Products.objects.filter(is_active=True)
-    return render(request,'user_side/account/index-3.html',{'brands':brands,'categorys':categorys,'products':products})
+    return render(request,'user_side/account/index-3.html',{'brands':brands,'categories':categories,'products':products})
 
 def register(request):
     if request.method == 'POST':

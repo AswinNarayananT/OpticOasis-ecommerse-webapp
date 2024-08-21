@@ -1,7 +1,6 @@
 {% extends 'user_side/user_base.html' %}
 {% load static %}
 {% block content %}
-<!-- Add some CSS for the star rating -->
 <style>
     .star-rating {
         display: flex;
@@ -31,9 +30,9 @@
     <div class="page-header breadcrumb-wrap">
         <div class="container">
             <div class="breadcrumb">
-                <a href="index.html" rel="nofollow">Home</a>
-                <span></span> Fashion
-                <span></span> Abstract Print Patchwork Dress
+                <a href="{% url 'home_page' %}" rel="nofollow">Home</a>
+                <span></span> {{ product.product_brand}}
+                <span></span> {{ product.product_name }}
             </div>
         </div>
     </div>
@@ -196,11 +195,6 @@
                                             {% endif %}
                                         </div>
                                     </div>
-                                    <ul class="product-meta font-xs color-grey mt-50">
-                                        <li class="mb-5">SKU: <a href="#">FWM15VKT</a></li>
-                                        <li class="mb-5">Tags: <a href="#" rel="tag">Cloth</a>, <a href="#" rel="tag">Women</a>, <a href="#" rel="tag">Dress</a> </li>
-                                        <li>Availability:<span class="in-stock text-success ml-5">8 Items In Stock</span></li>
-                                    </ul>
                                 </div>
                                 <!-- Detail Info -->
                             </div>
@@ -208,80 +202,52 @@
                         
                         <div class="row">
                             <div class="col-lg-10 m-auto entry-main-content">
-                                <h2 class="section-title style-1 mb-30">Description</h2>
-                                <div class="description mb-50">
-                                    <p>{{ products.product_description }}</p>
-                                    <ul class="product-more-infor mt-30">
-                                        <li><span>Type Of Packing</span> Custom-designed, fashion-forward packaging to complement the style and sophistication of your purchase.</li>
-                                        <li><span>Color Options</span> Available in elegant Green, chic Pink, stylish Powder Blue, and classic Purple.</li>
-                                        <li><span>Quantity Per Case</span>100 ml bottles, ideal for personal or gift use.l</li>
-                                        <li><span>Ethyl Alcohol Content: </span>70% - ensuring high quality and durability.</li>
-                                        <li><span>Carton Details</span>Each carton contains multiple pieces, ensuring secure and organized shipping.</li>
-                                    </ul>
-                                    <hr class="wp-block-separator is-style-dots">
-                                    
-                                    <h4 class="mt-30">Packaging & Delivery</h4>
-                                    <p>We take pride in ensuring that your purchase arrives in perfect condition. Each item is meticulously packaged using premium materials to protect it during transit. Our products are carefully wrapped and secured in a sturdy box, complete with branded tissue paper and a signature seal for an elegant touch, making the unboxing experience as delightful as the product itself.
-
-                                        Our fast and reliable delivery services ensure your order reaches you as quickly as possible. We partner with efficient and dependable shipping providers and offer real-time tracking information so you can monitor your package's journey from our warehouse to your doorstep. Depending on your location, various shipping options are available to suit your needs, including expedited delivery for those times when you just can’t wait. Enjoy hassle-free delivery and exceptional service with every order.
-                                    </p>
-                                </div>
-                                <div class="social-icons single-share">
-                                    <ul class="text-grey-5 d-inline-block">
-                                        <li><strong class="mr-10">Share this:</strong></li>
-                                        <li class="social-facebook"><a href="#"><img src="assets/imgs/theme/icons/icon-facebook.svg" alt=""></a></li>
-                                        <li class="social-twitter"> <a href="#"><img src="assets/imgs/theme/icons/icon-twitter.svg" alt=""></a></li>
-                                        <li class="social-instagram"><a href="#"><img src="assets/imgs/theme/icons/icon-instagram.svg" alt=""></a></li>
-                                        <li class="social-linkedin"><a href="#"><img src="assets/imgs/theme/icons/icon-pinterest.svg" alt=""></a></li>
-                                    </ul>
-                                </div>
 
                                 <h3 class="section-title style-1 mb-30 mt-30">Reviews ({{ reviews.count }})</h3>
 
                                 <!-- Comment Form -->
-<div class="comment-form">
-    <h4 class="mb-15">Add a review</h4>
+                                <div class="comment-form">
+                                    <h4 class="mb-15">Add a review</h4>
 
-    {% if has_purchased %}
-        <div class="row justify-content-center">
-            <div class="col-lg-6 col-md-8">
-                <form method="post" class="form-contact comment_form" action="{% url 'product:add-review' product.id %}" id="commentForm">
-                    {% csrf_token %}
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="form-group">
-                                <textarea class="form-control w-100" name="comment" id="comment" cols="30" rows="4" placeholder="Write Comment" required></textarea>
-                            </div>
-                        </div>
-                        <div class="col-12 text-center">
-                            <div class="star-rating" id="star-rating" style="display: inline-block;">
-                                <span class="star" data-value="1">&#9733;</span>
-                                <span class="star" data-value="2">&#9733;</span>
-                                <span class="star" data-value="3">&#9733;</span>
-                                <span class="star" data-value="4">&#9733;</span>
-                                <span class="star" data-value="5">&#9733;</span>
-                            </div>
-                            <input type="hidden" id="rating" name="rating" value="0" required>
-                            <p class="text-muted mt-2">Please give a rating before submitting your review.</p>
-                        </div>
-                    </div>
-                    <div class="form-group text-center">
-                        <button type="submit" class="button button-contactForm">Submit Review</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    {% else %}
-        <p class="text-muted">You must purchase this product before you can leave a review.</p>
-    {% endif %}
-</div>
+                                    {% if has_purchased %}
+                                        <div class="row justify-content-center">
+                                            <div class="col-lg-6 col-md-8">
+                                                <form method="post" class="form-contact comment_form" action="{% url 'product:add-review' product.id %}" id="commentForm">
+                                                    {% csrf_token %}
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <textarea class="form-control w-100" name="comment" id="comment" cols="30" rows="4" placeholder="Write Comment" required></textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12 text-center">
+                                                            <div class="star-rating" id="star-rating" style="display: inline-block;">
+                                                                <span class="star" data-value="1">&#9733;</span>
+                                                                <span class="star" data-value="2">&#9733;</span>
+                                                                <span class="star" data-value="3">&#9733;</span>
+                                                                <span class="star" data-value="4">&#9733;</span>
+                                                                <span class="star" data-value="5">&#9733;</span>
+                                                            </div>
+                                                            <input type="hidden" id="rating" name="rating" value="0" required>
+                                                            <p class="text-muted mt-2">Please give a rating before submitting your review.</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group text-center">
+                                                        <button type="submit" class="button button-contactForm">Submit Review</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted">You must purchase this product before you can leave a review.</p>
+                                    {% endif %}
+                                </div>
 
                                                                 
                                 <!-- Comments Area -->
                                 <div class="comments-area style-2">
                                     <div class="row">
                                         <div class="col-lg-8">
-                                            <h4 class="mb-30">Customer questions & answers</h4>
                                             {% for review in reviews %}
                                             <div class="comment-list mb-4">
                                                 <div class="single-comment p-3 bg-light rounded shadow-sm">
@@ -355,143 +321,50 @@
                                 <h3 class="section-title style-1 mb-30">Related products</h3>
                             </div>
                             <div class="col-12">
-                                <div class="row related-products">
-                                    <div class="col-lg-3 col-md-4 col-12 col-sm-6">
-                                        <div class="product-cart-wrap small hover-up">
-                                            <div class="product-img-action-wrap">
-                                                <div class="product-img product-img-zoom">
-                                                    <a href="shop-product-right.html" tabindex="0">
-                                                        <img class="default-img" src="assets/imgs/shop/product-2-1.jpg" alt="">
-                                                        <img class="hover-img" src="assets/imgs/shop/product-2-2.jpg" alt="">
-                                                    </a>
+                                <div class="row">
+                                    {% for product in related_products %}
+                                        <div class="col-lg-3 col-md-4 col-sm-6 col-12 product-card-wrapper">
+                                            <div class="product-cart-wrap">
+                                                <div class="product-img-action-wrap">
+                                                    <div class="product-img product-img-zoom">
+                                                        <a href="{% url 'product:product-detail-page' product.id %}">
+                                                            {% with product.product_variant_set.first as variant %}
+                                                                {% if variant and variant.product_variant_images_set.first %}
+                                                                    <img class="default-img" src="{{ variant.product_variant_images_set.first.images.url }}" alt="{{ product.product_name }}">
+                                                                {% elif product.thumbnail %}
+                                                                    <img class="default-img" src="{{ product.thumbnail.url }}" alt="{{ product.product_name }}">
+                                                                {% else %}
+                                                                    <img class="default-img" src="{% static 'images/No_Image-1024.webp' %}" alt="{{ product.product_name }}">
+                                                                {% endif %}
+                                                            {% endwith %}
+                                                        </a>
+                                                    </div>
                                                 </div>
-                                                <div class="product-action-1">
-                                                    <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal
-"><i class="fi-rs-search"></i></a>
-                                                    <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
-                                                    <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
-                                                </div>
-                                                <div class="product-badges product-badges-position product-badges-mrg">
-                                                    <span class="hot">Hot</span>
-                                                </div>
-                                            </div>
-                                            <div class="product-content-wrap">
-                                                <h2><a href="shop-product-right.html" tabindex="0">Ulstra Bass Headphone</a></h2>
-                                                <div class="rating-result" title="90%">
-                                                    <span>
-                                                    </span>
-                                                </div>
-                                                <div class="product-price">
-                                                    <span>$238.85 </span>
-                                                    <span class="old-price">$245.8</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-3 col-md-4 col-12 col-sm-6">
-                                        <div class="product-cart-wrap small hover-up">
-                                            <div class="product-img-action-wrap">
-                                                <div class="product-img product-img-zoom">
-                                                    <a href="shop-product-right.html" tabindex="0">
-                                                        <img class="default-img" src="assets/imgs/shop/product-3-1.jpg" alt="">
-                                                        <img class="hover-img" src="assets/imgs/shop/product-4-2.jpg" alt="">
-                                                    </a>
-                                                </div>
-                                                <div class="product-action-1">
-                                                    <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal
-"><i class="fi-rs-search"></i></a>
-                                                    <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
-                                                    <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
-                                                </div>
-                                                <div class="product-badges product-badges-position product-badges-mrg">
-                                                    <span class="sale">-12%</span>
-                                                </div>
-                                            </div>
-                                            <div class="product-content-wrap">
-                                                <h2><a href="shop-product-right.html" tabindex="0">Smart Bluetooth Speaker</a></h2>
-                                                <div class="rating-result" title="90%">
-                                                    <span>
-                                                    </span>
-                                                </div>
-                                                <div class="product-price">
-                                                    <span>$138.85 </span>
-                                                    <span class="old-price">$145.8</span>
+                                                <div class="product-content-wrap">
+                                                    <div class="product-category">
+                                                        <a href="#">{{ product.product_brand.brand_name }}</a>
+                                                    </div>
+                                                    <h2><a href="{% url 'product:product-detail-page' product.id %}">{{ product.product_name }}</a></h2>
+                                                    <div class="product-price">
+                                                        {% if product.offer_price < product.price %}
+                                                            <span class="offer-price">₹{{ product.offer_price }}</span>
+                                                            <span class="old-price">₹{{ product.price }}</span>
+                                                        {% else %}
+                                                            <span class="offer-price">₹{{ product.price }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    {% if product.percentage_discount > 0 %}
+                                                        <div class="product-discount">
+                                                            <span>Discount: {{ product.percentage_discount }}%</span>
+                                                        </div>
+                                                    {% endif %}
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="col-lg-3 col-md-4 col-12 col-sm-6">
-                                        <div class="product-cart-wrap small hover-up">
-                                            <div class="product-img-action-wrap">
-                                                <div class="product-img product-img-zoom">
-                                                    <a href="shop-product-right.html" tabindex="0">
-                                                        <img class="default-img" src="assets/imgs/shop/product-4-1.jpg" alt="">
-                                                        <img class="hover-img" src="assets/imgs/shop/product-4-2.jpg" alt="">
-                                                    </a>
-                                                </div>
-                                                <div class="product-action-1">
-                                                    <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal
-"><i class="fi-rs-search"></i></a>
-                                                    <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
-                                                    <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
-                                                </div>
-                                                <div class="product-badges product-badges-position product-badges-mrg">
-                                                    <span class="new">New</span>
-                                                </div>
-                                            </div>
-                                            <div class="product-content-wrap">
-                                                <h2><a href="shop-product-right.html" tabindex="0">HomeSpeak 12UEA Goole</a></h2>
-                                                <div class="rating-result" title="90%">
-                                                    <span>
-                                                    </span>
-                                                </div>
-                                                <div class="product-price">
-                                                    <span>$738.85 </span>
-                                                    <span class="old-price">$1245.8</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-3 col-md-4 col-12 col-sm-6">
-                                        <div class="product-cart-wrap small hover-up mb-0">
-                                            <div class="product-img-action-wrap">
-                                                <div class="product-img product-img-zoom">
-                                                    <a href="shop-product-right.html" tabindex="0">
-                                                        <img class="default-img" src="assets/imgs/shop/product-5-1.jpg" alt="">
-                                                        <img class="hover-img" src="assets/imgs/shop/product-3-2.jpg" alt="">
-                                                    </a>
-                                                </div>
-                                                <div class="product-action-1">
-                                                    <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal
-"><i class="fi-rs-search"></i></a>
-                                                    <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
-                                                    <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
-                                                </div>
-                                                <div class="product-badges product-badges-position product-badges-mrg">
-                                                    <span class="hot">Hot</span>
-                                                </div>
-                                            </div>
-                                            <div class="product-content-wrap">
-                                                <h2><a href="shop-product-right.html" tabindex="0">Dadua Camera 4K 2022EF</a></h2>
-                                                <div class="rating-result" title="90%">
-                                                    <span>
-                                                    </span>
-                                                </div>
-                                                <div class="product-price">
-                                                    <span>$89.8 </span>
-                                                    <span class="old-price">$98.8</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                        {% empty %}
+                                        <p>No Related Products Found</p>
+                                    {% endfor %}
                                 </div>
-                            </div>
-                        </div>
-                        <div class="banner-img banner-big wow fadeIn f-none animated mt-50">
-                            <img class="border-radius-10" src="assets/imgs/banner/banner-4.png" alt="">
-                            <div class="banner-text">
-                                <h4 class="mb-15 mt-40">Repair Services</h4>
-                                <h2 class="fw-600 mb-20">We're an Apple <br>Authorised Service Provider</h2>
                             </div>
                         </div>
                     </div>
@@ -581,6 +454,7 @@
                     $(img).attr('src', imageUrls[0]);
                 }
             });
+            
         
             // Update thumbnails
             $('#thumbnails-slider .thumbnail-item img').each(function(index, img) {
@@ -877,43 +751,49 @@
     
 </script>
 <script>
-    function enableZoom(img) {
-        const container = img.parentElement;
-        const zoomLevel = 2; // Adjust the zoom level as needed
-        let isZoomed = false;
+    $(document).ready(function() {
+        // Function to initialize zoom on the currently visible main image
+        function initializeZoom() {
+            // Destroy any existing zoom instances
+            $('.main-image').trigger('zoom.destroy');
     
-        container.addEventListener('mousemove', (e) => {
-            if (!isZoomed) return;
+            // Apply zoom to the currently visible image
+            $('.main-image:visible').zoom({
+                magnify: 1.5 // Adjust the magnification level as needed
+            });
+        }
     
-            const rect = container.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+        // Initialize zoom on page load for the first visible image
+        initializeZoom();
     
-            const percentX = (x / rect.width) * 100;
-            const percentY = (y / rect.height) * 100;
+        // Function to update the main image
+        function updateMainImage(src) {
+            $('#product-image-slider .main-image').hide(); // Hide all images
+            $('#product-image-slider .main-image').filter(function() {
+                return $(this).attr('src') === src;
+            }).show(); // Show the selected image
     
-            img.style.transformOrigin = `${percentX}% ${percentY}%`;
+            // Reinitialize zoom on the newly visible image
+            initializeZoom();
+        }
+    
+        // Handle thumbnail click events
+        $('#thumbnails-slider').on('click', '.thumbnail-item img', function() {
+            var thumbnailSrc = $(this).attr('src');
+            if (thumbnailSrc) {
+                updateMainImage(thumbnailSrc);
+            }
         });
     
-        container.addEventListener('mouseenter', () => {
-            isZoomed = true;
-            img.style.transform = `scale(${zoomLevel})`;
-        });
-    
-        container.addEventListener('mouseleave', () => {
-            isZoomed = false;
-            img.style.transform = 'scale(1)';
-        });
-    }
-    
-    // Initialize zoom for the current image when the DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        const images = document.querySelectorAll('.product-image-slider .main-image');
-        images.forEach((img) => {
-            enableZoom(img);
+        // Handle color variant selection
+        $('.color-select').on('click', function() {
+            var imageUrls = $(this).data('image-urls').split(',');
+            updateMainImage(imageUrls[0]); // Set the first image of the selected color variant
         });
     });
+    
 </script>
+
 
 
 {% endblock %}

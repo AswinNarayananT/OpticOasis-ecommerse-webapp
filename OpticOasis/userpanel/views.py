@@ -27,7 +27,8 @@ from reportlab.lib.styles import getSampleStyleSheet
 from io import BytesIO
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
-
+from decimal import Decimal
+from io import BytesIO
 
 
 # Create your views here.
@@ -130,6 +131,7 @@ def cancel_order(request, order_id):
 
             refund_amount += item_refund_amount
             item.is_active = False
+            item.status='Canceled'
             item.save()
 
         order.order_status = 'Canceled'
@@ -209,7 +211,7 @@ def cancel_order_item(request):
 def return_order(request, order_id):
     order = get_object_or_404(OrderMain, id=order_id, user=request.user)
 
-    if order.order_status == 'Returned':
+    if order.order_status == 'Returned' or order.order_status == 'Return Rejected':
         messages.error(request, 'This order has already been returned.')
         return redirect('userpanel:order-list')
     
@@ -219,7 +221,7 @@ def return_order(request, order_id):
             order_main=order,
             reason=reason
         )
-        order.order_status = 'Returned'
+        order.order_status = 'Return requested'
         order.save()
         messages.success(request, 'Return request has been submitted successfully.')
         return redirect('userpanel:order-list')
@@ -247,7 +249,7 @@ def return_item(request, item_id):
         all_returned = not item.main_order.ordersub_set.filter(is_active=True).exists()
         
         if all_returned:
-            item.main_order.order_status = 'Returned'
+            item.main_order.order_status = 'Return requested'
             item.main_order.save()
 
         messages.success(request, 'Return request for the item has been submitted successfully.')
@@ -346,17 +348,15 @@ def wallet_view(request):
     return render(request, 'user_side/userpanel/wallet.html', context)
 
 
-
-
 @login_required
 def download_invoice(request, order_id):
     try:
         order_main = get_object_or_404(OrderMain, id=order_id)
-        order_sub = OrderSub.objects.filter(main_order=order_main)
+        order_sub = OrderSub.objects.filter(main_order=order_main, is_active=True)
         buffer = BytesIO()
 
         try:
-            doc = SimpleDocTemplate(buffer, pagesize=letter)
+            doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
             elements = []
 
             styles = getSampleStyleSheet()
@@ -376,21 +376,30 @@ def download_invoice(request, order_id):
             elements.append(Paragraph(f"<b>Address:</b> {order_main.address.house_name}, {order_main.address.street_name}, {order_main.address.district}, {order_main.address.state}, {order_main.address.pin_number}, {order_main.address.country}", normal_style))
             elements.append(Spacer(1, 0.5 * inch))
 
-            data = [['Product', 'Quantity', 'Unit Price', 'Total Price']]
+            data = [['Product', 'Quantity', 'Unit Price', 'Discount', 'Total Price']]
+            subtotal = Decimal('0.00')
+            total_discount = Decimal('0.00')
+
             for item in order_sub:
+                item_total_cost = Decimal(str(item.total_cost()))
+                order_total_amount = Decimal(str(order_main.total_amount))
+                order_discount_amount = Decimal(str(order_main.discount_amount))
+
+                item_discount_amount = (order_discount_amount * item_total_cost) / order_total_amount
+                item_final_price = item_total_cost - item_discount_amount
+
+                subtotal += item_total_cost
+                total_discount += item_discount_amount
+
                 data.append([
-                    item.variant.product.product_name,
+                    Paragraph(item.variant.product.product_name, normal_style), 
                     str(item.quantity),
-                    f" {item.price:.2f}",
-                    f" {item.price * item.quantity:.2f}"
+                    f"${Decimal(item.price):.2f}",
+                    f"-${item_discount_amount:.2f}",
+                    f"${item_final_price:.2f}"
                 ])
 
-            data.append(['', '', 'Subtotal:', f" {order_main.total_amount:.2f}"])
-            data.append(['', '', 'Discount:', f" {order_main.discount_amount:.2f}"])
-            data.append(['', '', 'Shipping:', 'Free'])
-            data.append(['', '', 'Total:', f" {order_main.final_amount:.2f}"])
-
-            table = Table(data, colWidths=[2.5 * inch, 1.25 * inch, 1.25 * inch, 1.5 * inch])
+            table = Table(data, colWidths=[None, 1.25 * inch, 1.25 * inch, 1.25 * inch, 1.5 * inch])
             style = TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
@@ -403,13 +412,31 @@ def download_invoice(request, order_id):
                 ('ALIGN', (2, 1), (-1, -1), 'RIGHT'),
                 ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-                ('BACKGROUND', (2, -4), (-1, -2), colors.lightgrey),
                 ('FONTSIZE', (0, 1), (-1, -1), 11),
+                ('VALIGN', (0, 1), (-1, -1), 'TOP'),
             ])
             table.setStyle(style)
             elements.append(table)
 
-            # Footer Note
+            elements.append(Spacer(1, 0.5 * inch))
+
+            total_data = [
+                ['Subtotal:', f"${subtotal:.2f}"],
+                ['Discount:', f"-${total_discount:.2f}"],
+                ['Shipping:', 'Free'],
+                ['Total:', f"${subtotal - total_discount:.2f}"]
+            ]
+
+            total_table = Table(total_data, colWidths=[4 * inch, 1.5 * inch], hAlign='RIGHT')
+            total_table_style = TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 12),
+                ('LINEABOVE', (0, -1), (-1, -1), 1, colors.black)
+            ])
+            total_table.setStyle(total_table_style)
+            elements.append(total_table)
+
             elements.append(Spacer(1, 1 * inch))
             elements.append(Paragraph("Thank you for shopping with OPTIC OASIS!", normal_style))
 
