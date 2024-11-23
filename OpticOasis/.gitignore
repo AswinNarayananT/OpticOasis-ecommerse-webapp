@@ -17,6 +17,7 @@ db.sqlite3
 # Environment variables
 .env
 my_env/
+my_env
 
 # Virtualenv
 venv/
@@ -61,6 +62,7 @@ dmypy.json
 
 # VS Code
 .vscode/
+.vscode
 
 # macOS system files
 .DS_Store
