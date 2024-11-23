@@ -1,0 +1,71 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+*.pyo
+*.sqlite3
+db.sqlite3
+
+# Django migrations
+**/migrations/**
+
+# Environment variables
+.env
+my_env/
+my_env
+
+# Virtualenv
+venv/
+env/
+ENV/
+
+# VS Code settings
+.vscode/
+
+# Pytest
+.pytest_cache/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# Test and cache files
+*.cover
+*.py,cover
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# PyCharm
+.idea/
+.idea/*
+
+# VS Code
+.vscode/
+.vscode
+
+# macOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
