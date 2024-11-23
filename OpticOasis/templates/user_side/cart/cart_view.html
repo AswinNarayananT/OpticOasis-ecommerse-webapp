@@ -130,6 +130,7 @@
                                             <p class="mb-1">Code: <strong>{{ coupon.coupon_code }}</strong></p>
                                             <p class="mb-1">Discount: {{ coupon.discount }}%</p>
                                             <p class="mb-1">Minimum Amount: ₹{{ coupon.minimum_amount }}</p>
+                                            <p class="mb-1">Maximum Amount: ₹{{ coupon.maximum_amount }}</p>
                                             <p class="mb-1">Expiry Date: {{ coupon.expiry_date }}</p>
                                         </div>
                                         <button class="btn btn-outline-primary apply-coupon-btn" data-code="{{ coupon.coupon_code }}"  id="apply-coupon-btn">Apply Coupon</button>

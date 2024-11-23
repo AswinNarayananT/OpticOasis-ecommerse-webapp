@@ -385,9 +385,12 @@ def edit_variant(request, variant_id):
 def product_detail_page(request, product_id):
     product = get_object_or_404(Products, id=product_id)
     star_ratings = product.get_star_rating_distribution()
-    has_purchased = product.user_has_purchased(request.user)
     variants = Product_Variant.objects.filter(product=product).prefetch_related('product_variant_images_set')
     related_products = Products.objects.filter(product_brand=product.product_brand).exclude(id=product_id)[:4]
+
+    has_purchased = False 
+    if request.user.is_authenticated:
+        has_purchased = product.user_has_purchased(request.user) 
 
     selected_variant = variants.first() 
     variant_images = Product_variant_images.objects.none()

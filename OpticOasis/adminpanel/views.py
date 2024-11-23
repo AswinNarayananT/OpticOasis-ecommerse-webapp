@@ -26,6 +26,8 @@ from django.db.models.functions import ExtractMonth, ExtractYear, TruncMonth
 
 # Create your views here.
 
+
+
 def admin_login(request):
     if request.method == 'POST':
         email = request.POST.get('email')

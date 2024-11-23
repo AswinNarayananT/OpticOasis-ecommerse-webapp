@@ -139,7 +139,7 @@ def cancel_order(request, order_id):
         order.save()
 
         if refund_amount > 0:
-            if order.payment_option == 'razorpay' or order.payment_option == 'wallet':
+            if order.payment_option == 'razorpay' and order.payment_status or order.payment_option == 'wallet' and order.payment_status:
                 wallet, _ = Wallet.objects.get_or_create(user=request.user)
                 wallet.balance += refund_amount
                 wallet.updated_at = timezone.now()
@@ -173,7 +173,7 @@ def cancel_order_item(request):
         messages.error(request, 'Order cannot be canceled at this stage.')
         return redirect('userpanel:order-list')
     
-    if main_order.payment_option == 'razorpay' or main_order.payment_option == 'wallet':
+    if main_order.payment_option == 'razorpay' and main_order.payment_status  or main_order.payment_option == 'wallet'  and main_order.payment_status:
         
         item_total_cost = Decimal(str(order_item.total_cost()))
         order_total_amount = Decimal(str(main_order.total_amount))
@@ -225,7 +225,7 @@ def return_order(request, order_id):
         order.save()
         messages.success(request, 'Return request has been submitted successfully.')
         return redirect('userpanel:order-list')
-    return render(request, 'user_side/return_order.html', {'order': order})
+
 
 
 def return_item(request, item_id):
