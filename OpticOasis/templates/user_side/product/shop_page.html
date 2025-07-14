@@ -1,277 +1,394 @@
 {% extends 'user_side/user_base.html' %}
 {% load static %}
 {% block content %}
+
 <style>
-    .product-grid-4 {
-        display: flex;
-        flex-wrap: wrap;
-        margin-top: 30px;
+    /* Price Range Widget Styling */
+    .widget-category {
+        background: #fff !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
+        margin-bottom: 25px !important;
+        border: 1px solid #f0f0f0 !important;
     }
 
-    .product-card-wrapper {
-        padding: 15px;
+    .section-title {
+        color: #2c3e50 !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        margin-bottom: 20px !important;
+        border-bottom: 2px solid #088178 !important;
+        padding-bottom: 10px !important;
     }
 
-    .product-cart-wrap {
-        background-color: #fff;
-        border: 1px solid #e5e5e5;
-        border-radius: 8px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
+    .custome-checkbox {
+        max-height: 200px !important;
+        overflow-y: auto !important;
     }
 
-    .product-cart-wrap:hover {
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        transform: translateY(-3px);
+    .custome-checkbox > div {
+        padding: 8px 0 !important;
+        border-bottom: 1px solid #f5f5f5 !important;
     }
 
-    .product-img-action-wrap {
-        position: relative;
-        overflow: hidden;
+    .custome-checkbox > div:last-child {
+        border-bottom: none !important;
     }
 
-    .product-img {
-        position: relative;
-        padding-top: 100%; /* 1:1 Aspect Ratio */
+    .form-check-input {
+        margin-right: 10px !important;
+        accent-color: #e74c3c !important;
     }
 
-    .product-img img {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+    .form-check-label {
+        font-size: 14px !important;
+        color: #666 !important;
+        cursor: pointer !important;
     }
 
-    .product-action-1 {
-        position: absolute;
-        bottom: -50px;
-        left: 0;
-        right: 0;
-        display: flex;
-        justify-content: center;
-        transition: bottom 0.3s ease;
+    .form-check-label:hover {
+        color: #e74c3c !important;
     }
 
-    .product-cart-wrap:hover .product-action-1 {
-        bottom: 10px;
+    .form-control {
+        border-radius: 8px !important;
+        border: 1px solid #ddd !important;
+        padding: 10px 12px !important;
+        font-size: 14px !important;
+        transition: all 0.3s ease !important;
     }
 
-    .action-btn {
-        background-color: #fff;
-        color: #333;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    .form-control:focus {
+        border-color: #e74c3c !important;
+        box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25) !important;
     }
 
-    .action-btn:hover {
-        background-color: #333;
-        color: #fff;
+    .form-group {
+        margin-bottom: 15px !important;
     }
 
-    .product-content-wrap {
-        padding: 15px;
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
+    .form-group label {
+        font-weight: 500 !important;
+        color: #555 !important;
+        margin-bottom: 5px !important;
+        display: block !important;
     }
 
-    .product-category a {
-        color: #777;
-        font-size: 14px;
-        text-decoration: none;
+    .price-range-inputs {
+        display: flex !important;
+        gap: 10px !important;
+        align-items: center !important;
     }
 
-    .product-content-wrap h5 {
-        font-size: 16px;
-        margin: 10px 0;
+    .price-range-inputs input {
+        flex: 1 !important;
     }
 
-    .product-content-wrap h5 a {
-        color: #333;
-        text-decoration: none;
-        transition: color 0.3s ease;
+    .price-separator {
+        color: #999 !important;
+        font-weight: 500 !important;
     }
 
-    .product-content-wrap h5 a:hover {
-        color: #007bff;
+    .filter-apply-btn {
+        background: #088178 !important;
+        color: white !important;
+        border: none !important;
+        padding: 10px 20px !important;
+        border-radius: 8px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        width: 100% !important;
+        margin-top: 15px !important;
     }
 
-    .product-rate-cover {
-        margin-bottom: 10px;
+    .filter-apply-btn:hover {
+        background: #c0392b !important;
+        transform: translateY(-1px) !important;
     }
 
-    .product-rate {
-        background-color: #ffb800;
-        height: 15px;
-        width: 80px;
-        position: relative;
+    .breadcrumb-wrap {
+        background: #f8f9fa !important;
+        padding: 15px 0 !important;
+        border-bottom: 1px solid #e9ecef !important;
     }
 
-    .product-rating {
-        background-color: #ffd700;
-        height: 100%;
+    .breadcrumb a {
+        color: #6c757d !important;
+        text-decoration: none !important;
+        transition: color 0.3s ease !important;
     }
 
-    .product-discount {
-        font-size: 14px;
-        color: #28a745;
-        margin-top: 5px;
+    .breadcrumb a:hover {
+        color: #e74c3c !important;
     }
 
-    .product-price {
-        margin-top: auto;
+    /* Loading state */
+    .loading {
+        opacity: 0.6 !important;
+        pointer-events: none !important;
     }
 
-    .offer-price {
-        font-size: 18px;
-        font-weight: bold;
-        color: #333;
+    .loading::after {
+        content: '' !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        width: 40px !important;
+        height: 40px !important;
+        margin: -20px 0 0 -20px !important;
+        border: 3px solid #f3f3f3 !important;
+        border-top: 3px solid #e74c3c !important;
+        border-radius: 50% !important;
+        animation: spin 1s linear infinite !important;
+        z-index: 1000 !important;
     }
 
-    .old-price {
-        font-size: 14px;
-        text-decoration: line-through;
-        color: #777;
-        margin-left: 5px;
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 </style>
 
-    <!-- Breadcrumb -->
-    <div class="page-header breadcrumb-wrap">
-        <div class="container">
-            <div class="breadcrumb">
-                <a href="{% url 'home_page' %}" rel="nofollow">Home</a>  
-                <span></span><a href="{% url 'product:shop-page' %}">Shop</a> 
-            </div>
+<!-- Breadcrumb -->
+<div class="page-header breadcrumb-wrap">
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="{% url 'home_page' %}" rel="nofollow">Home</a>  
+            <span></span><a href="{% url 'product:shop-page' %}">Shop</a> 
         </div>
     </div>
+</div>
 
-    <!-- Main Content -->
-    <main class="main">
-        <section class="product-tabs pt-25 pb-20 wow fadeIn animated">
-            <div class="container">
-                <div class="row">
-                    <!-- Sidebar -->
-                    <div class="col-lg-3">
-                        <form id="filter-form">
-                            <!-- Category Widget -->
-                            <div class="widget-category mb-30">
-                                <h5 class="section-title style-1 mb-30 wow fadeIn animated">Category</h5>
-                                <div class="custome-checkbox">
-                                    {% for category in categories %}
-                                        <div>
-                                            <p>{{ category.name }}</p>
-                                            <input class="form-check-input filter-checkbox" type="checkbox" name="category" id="category{{ category.id }}" value="{{ category.id }}"
-                                                {% if category.id|stringformat:"s" in selected_categories %}checked{% endif %}>
-                                            <label class="form-check-label" for="category{{ category.id }}"><span>{{ category.category_name }}</span></label>
-                                        </div>
-                                    {% endfor %}
-                                </div>
+<!-- Main Content -->
+<main class="main">
+    <section class="product-tabs pt-25 pb-20 wow fadeIn animated">
+        <div class="container">
+            <div class="row">
+                <!-- Sidebar -->
+                <div class="col-lg-3">
+                    <form id="filter-form">
+                        <!-- Category Widget -->
+                        <div class="widget-category mb-30">
+                            <h5 class="section-title style-1 mb-30 wow fadeIn animated">Category</h5>
+                            <div class="custome-checkbox">
+                                {% for category in categories %}
+                                    <div>
+                                        <input class="form-check-input filter-checkbox" type="checkbox" name="category" id="category{{ category.id }}" value="{{ category.id }}"
+                                            {% if category.id|stringformat:"s" in selected_categories %}checked{% endif %}>
+                                        <label class="form-check-label" for="category{{ category.id }}">
+                                            <span>{{ category.category_name }}</span>
+                                        </label>
+                                    </div>
+                                {% endfor %}
                             </div>
+                        </div>
 
-                            <!-- Sort By Widget -->
-                            <div class="widget-category mb-30">
-                                <h5 class="section-title style-1 mb-30 wow fadeIn animated">Sort by</h5>
-                                <select name="sort" id="sort-select" class="form-control">
-                                    <option value="featured" {% if current_sort == 'featured' %}selected{% endif %}>Featured</option>
-                                    <option value="popularity" {% if current_sort == 'popularity' %}selected{% endif %}>Popularity</option>
-                                    <option value="price_low_high" {% if current_sort == 'price_low_high' %}selected{% endif %}>Price: Low to High</option>
-                                    <option value="price_high_low" {% if current_sort == 'price_high_low' %}selected{% endif %}>Price: High to Low</option>
-                                    <option value="avg_rating" {% if current_sort == 'avg_rating' %}selected{% endif %}>Average Rating</option>
-                                    <option value="new_arrivals" {% if current_sort == 'new_arrivals' %}selected{% endif %}>New Arrivals</option>
-                                    <option value="name_az" {% if current_sort == 'name_az' %}selected{% endif %}>Name: A to Z</option>
-                                    <option value="name_za" {% if current_sort == 'name_za' %}selected{% endif %}>Name: Z to A</option>
-                                    <option value="inventory" {% if current_sort == 'inventory' %}selected{% endif %}>Inventory</option>
-                                </select>
-                            </div>
+                        <!-- Sort By Widget -->
+                        <div class="widget-category mb-30">
+                            <h5 class="section-title style-1 mb-30 wow fadeIn animated">Sort by</h5>
+                            <select name="sort" id="sort-select" class="form-control">
+                                <option value="featured" {% if current_sort == 'featured' %}selected{% endif %}>Featured</option>
+                                <option value="popularity" {% if current_sort == 'popularity' %}selected{% endif %}>Popularity</option>
+                                <option value="price_low_high" {% if current_sort == 'price_low_high' %}selected{% endif %}>Price: Low to High</option>
+                                <option value="price_high_low" {% if current_sort == 'price_high_low' %}selected{% endif %}>Price: High to Low</option>
+                                <option value="avg_rating" {% if current_sort == 'avg_rating' %}selected{% endif %}>Average Rating</option>
+                                <option value="new_arrivals" {% if current_sort == 'new_arrivals' %}selected{% endif %}>New Arrivals</option>
+                                <option value="name_az" {% if current_sort == 'name_az' %}selected{% endif %}>Name: A to Z</option>
+                                <option value="name_za" {% if current_sort == 'name_za' %}selected{% endif %}>Name: Z to A</option>
+                                <option value="inventory" {% if current_sort == 'inventory' %}selected{% endif %}>Inventory</option>
+                            </select>
+                        </div>
 
-                            <!-- Price Range Widget -->
-                            <div class="widget-category mb-30">
-                                <h5 class="section-title style-1 mb-30 wow fadeIn animated">Price Range</h5>
+                        <!-- Price Range Widget -->
+                        <div class="widget-category mb-30">
+                            <h5 class="section-title style-1 mb-30 wow fadeIn animated">Price Range</h5>
+                            <div class="price-range-inputs">
                                 <div class="form-group">
                                     <label for="min_price">Min Price:</label>
-                                    <input type="number" class="form-control filter-input" id="min_price" name="min_price" value="{{ min_price }}">
+                                    <input type="number" class="form-control filter-input" id="min_price" name="min_price" 
+                                           value="{{ min_price }}" placeholder="₹0" min="0">
                                 </div>
+                                <span class="price-separator">-</span>
                                 <div class="form-group">
                                     <label for="max_price">Max Price:</label>
-                                    <input type="number" class="form-control filter-input" id="max_price" name="max_price" value="{{ max_price }}">
+                                    <input type="number" class="form-control filter-input" id="max_price" name="max_price" 
+                                           value="{{ max_price }}" placeholder="₹999999" min="0">
                                 </div>
                             </div>
+                            <button type="button" class="filter-apply-btn" id="apply-price-filter">Apply Price Filter</button>
+                        </div>
 
-                            <!-- Brand Widget -->
-                            <div class="widget-category mb-30">
-                                <h5 class="section-title style-1 mb-30 wow fadeIn animated">Brands</h5>
-                                <div class="custome-checkbox">
-                                    {% for brand in brands %}
-                                        <div>
-                                            <input class="form-check-input filter-checkbox" type="checkbox" name="brand" id="brand{{ brand.id }}" value="{{ brand.id }}"
-                                                {% if brand.id|stringformat:"s" in selected_brands %}checked{% endif %}>
-                                            <label class="form-check-label" for="brand{{ brand.id }}"><span>{{ brand.brand_name }}</span></label>
-                                        </div>
-                                    {% endfor %}
-                                </div>
+                        <!-- Brand Widget -->
+                        <div class="widget-category mb-30">
+                            <h5 class="section-title style-1 mb-30 wow fadeIn animated">Brands</h5>
+                            <div class="custome-checkbox">
+                                {% for brand in brands %}
+                                    <div>
+                                        <input class="form-check-input filter-checkbox" type="checkbox" name="brand" id="brand{{ brand.id }}" value="{{ brand.id }}"
+                                            {% if brand.id|stringformat:"s" in selected_brands %}checked{% endif %}>
+                                        <label class="form-check-label" for="brand{{ brand.id }}">
+                                            <span>{{ brand.brand_name }}</span>
+                                        </label>
+                                    </div>
+                                {% endfor %}
                             </div>
-                        </form>
-                    </div>
+                        </div>
 
-                    <!-- Product List -->
-                    <div class="col-lg-9">
-                        <div class="tab-content wow fadeIn animated" id="myTabContent">
-                            <div class="tab-pane fade show active" id="tab-one" role="tabpanel" aria-labelledby="tab-one">
-                                <div class="row product-grid-4" id="product-list">
-                                    {% include 'user_side/product/product_list_partial.html' %}
-                                </div>
+                        <!-- Clear Filters Button -->
+                        <div class="widget-category mb-30">
+                            <button type="button" class="filter-apply-btn" id="clear-filters" style="background: #6c757d !important;">
+                                Clear All Filters
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Product List -->
+                <div class="col-lg-9">
+                    <div class="tab-content wow fadeIn animated" id="myTabContent">
+                        <div class="tab-pane fade show active" id="tab-one" role="tabpanel" aria-labelledby="tab-one">
+                            <div class="row product-grid-4" id="product-list">
+                                {% include 'user_side/product/product_list_partial.html' %}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
-    </main>
+        </div>
+    </section>
+</main>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            var isRequestInProgress = false; // Flag to track request status
-    
-            function updateProducts() {
-                if (isRequestInProgress) {
-                    return; // Do nothing if a request is already in progress
-                }
-    
-                isRequestInProgress = true; // Set flag to true to indicate request is in progress
-    
-                $.ajax({
-                    url: '{% url "product:shop-page" %}',
-                    data: $('#filter-form').serialize(),
-                    dataType: 'json',
-                    success: function(data) {
-                        $('#myTabContent').html(data.html);
-                    },
-                    complete: function() {
-                        isRequestInProgress = false; // Reset flag when the request is complete
-                    }
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'user_side/assets/js/product_actions.js' %}"></script>
+
+<script>
+$(document).ready(function() {
+    var isRequestInProgress = false;
+    var debounceTimer;
+
+    function updateProducts() {
+        if (isRequestInProgress) {
+            return;
+        }
+
+        isRequestInProgress = true;
+        
+        // Add loading state
+        $('#product-list').addClass('loading');
+        
+        // Validate price range
+        var minPrice = parseInt($('#min_price').val()) || 0;
+        var maxPrice = parseInt($('#max_price').val()) || 999999;
+        
+        if (minPrice > maxPrice) {
+            Swal.fire({
+                toast: true,
+                position: 'top-right',
+                icon: 'error',
+                title: 'Minimum price cannot be greater than maximum price',
+                showConfirmButton: false,
+                timer: 3000
+            });
+            $('#product-list').removeClass('loading');
+            isRequestInProgress = false;
+            return;
+        }
+
+        $.ajax({
+            url: '{% url "product:shop-page" %}',
+            data: $('#filter-form').serialize(),
+            dataType: 'json',
+            success: function(data) {
+                $('#product-list').html(data.html);
+                
+                // Re-initialize product status checks
+                {% for product in products %}
+                    checkStatus({{ product.id }});
+                {% endfor %}
+            },
+            error: function(xhr, status, error) {
+                console.error('Filter request failed:', error);
+                Swal.fire({
+                    toast: true,
+                    position: 'top-right',
+                    icon: 'error',
+                    title: 'Failed to load products. Please try again.',
+                    showConfirmButton: false,
+                    timer: 3000
                 });
+            },
+            complete: function() {
+                isRequestInProgress = false;
+                $('#product-list').removeClass('loading');
             }
-    
-            $('.filter-checkbox, #sort-select').change(updateProducts);
-            $('.filter-input').on('input', $.debounce(300, updateProducts));
         });
-    </script>
+    }
+
+    // Debounced function for price inputs
+    function debouncedUpdate() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(updateProducts, 500);
+    }
+
+    // Event listeners
+    $('.filter-checkbox, #sort-select').change(updateProducts);
     
+    // Price filter with debouncing
+    $('#min_price, #max_price').on('input', debouncedUpdate);
+    
+    // Manual price filter application
+    $('#apply-price-filter').click(function() {
+        updateProducts();
+    });
+
+    // Clear all filters
+    $('#clear-filters').click(function() {
+        $('#filter-form')[0].reset();
+        $('#min_price').val('');
+        $('#max_price').val('');
+        updateProducts();
+    });
+
+    // Allow Enter key to apply price filter
+    $('#min_price, #max_price').keypress(function(e) {
+        if (e.which == 13) {
+            e.preventDefault();
+            updateProducts();
+        }
+    });
+});
+
+// Initialize product status checks
+document.addEventListener('DOMContentLoaded', function () {
+    {% for product in products %}
+        checkStatus({{ product.id }});
+    {% endfor %}
+
+    // Display messages
+    {% if messages %}
+        const messages = [
+            {% for message in messages %}
+                {
+                    level: "{{ message.tags }}",
+                    text: "{{ message|escapejs }}"
+                },
+            {% endfor %}
+        ];
+        messages.forEach(message => {
+            Swal.fire({
+                toast: true,
+                position: 'top-right',
+                icon: message.level === 'success' ? 'success' : 'error',
+                title: message.text,
+                showConfirmButton: false,
+                timer: 3000
+            });
+        });
+    {% endif %}
+});
+</script>
+
 {% endblock %}
-
-
-
-

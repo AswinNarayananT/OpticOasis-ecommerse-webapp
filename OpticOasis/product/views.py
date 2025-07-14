@@ -8,10 +8,12 @@ from django.http import JsonResponse ,HttpResponse
 from django.core.exceptions import ValidationError
 from django.db.models.functions import Lower
 from utils.decorators import admin_required
+from cart.models import Cart, CartItem
 from userpanel.models import Wishlist
 from django.contrib import messages
 from django.utils import timezone
 from django.db import DataError
+import json
 import re
 
 
@@ -573,3 +575,64 @@ def shop_page(request):
         return JsonResponse({'html': html})
     
     return render(request, 'user_side/product/shop_page.html', context)
+
+def parse_request_body(request):
+    body_unicode = request.body.decode('utf-8')
+    return json.loads(body_unicode)
+
+@login_required(login_url='/login/')
+def check_status(request, product_id):
+    product = get_object_or_404(Products, id=product_id)
+    variant = Product_Variant.objects.filter(product=product).first()
+
+    cart = Cart.objects.filter(user=request.user).first()
+    in_cart = False
+    if cart:
+        in_cart = CartItem.objects.filter(cart=cart, variant=variant, is_active=True).exists()
+
+    in_wishlist = Wishlist.objects.filter(user=request.user, variant=variant).exists()
+
+    return JsonResponse({"in_cart": in_cart, "in_wishlist": in_wishlist})
+
+@login_required(login_url='/login/')
+def toggle_cart(request):
+    if request.method == "POST":
+        data = parse_request_body(request)
+        product_id = data.get("product_id")
+        product = get_object_or_404(Products, id=product_id)
+        variant = Product_Variant.objects.filter(product=product).first()
+
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+
+        existing_item = CartItem.objects.filter(cart=cart, variant=variant, is_active=True).first()
+
+        if existing_item:
+            existing_item.is_active = False
+            existing_item.save()
+            return JsonResponse({"status": "removed"})
+        else:
+            CartItem.objects.filter(cart=cart, variant=variant).update(is_active=False)
+
+            CartItem.objects.create(cart=cart, product=product, variant=variant, quantity=1, is_active=True)
+            return JsonResponse({"status": "added"})
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+@login_required(login_url='/login/')
+def toggle_wishlist(request):
+    if request.method == "POST":
+        data = parse_request_body(request)
+        product_id = data.get("product_id")
+        product = get_object_or_404(Products, id=product_id)
+        variant = Product_Variant.objects.filter(product=product).first()
+
+        existing = Wishlist.objects.filter(user=request.user, variant=variant).first()
+
+        if existing:
+            existing.delete()
+            return JsonResponse({"status": "removed"})
+        else:
+            Wishlist.objects.create(user=request.user, variant=variant)
+            return JsonResponse({"status": "added"})
+
+    return JsonResponse({"error": "Invalid request"}, status=400)

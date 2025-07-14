@@ -46,24 +46,30 @@ def update_counts(request):
 def add_to_cart(request):
     if request.method == 'POST':
         variant_id = request.POST.get('variant_id')
-        quantity = int(request.POST.get('quantity', 1))  
+        quantity = int(request.POST.get('quantity', 1))
         variant = get_object_or_404(Product_Variant, id=variant_id)
         product = variant.product
 
-        cart, created = Cart.objects.get_or_create(user=request.user)
-        
-        cart_item, created = CartItem.objects.get_or_create(
-            cart=cart,
-            product=product,
-            variant=variant,
-            defaults={'quantity': quantity}
-        )
-                   
-        if not created:
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+
+        cart_item = CartItem.objects.filter(cart=cart, variant=variant, is_active=True).first()
+
+        if cart_item:
             cart_item.quantity += quantity
             cart_item.save()
-        
+        else:
+            CartItem.objects.filter(cart=cart, variant=variant).exclude(is_active=True).delete()
+
+            CartItem.objects.create(
+                cart=cart,
+                product=product,
+                variant=variant,
+                quantity=quantity,
+                is_active=True
+            )
+
         return JsonResponse({'status': 'success'})
+    
     return JsonResponse({'status': 'fail'})
 
 

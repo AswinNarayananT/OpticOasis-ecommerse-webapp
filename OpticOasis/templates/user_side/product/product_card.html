@@ -1,0 +1,200 @@
+{% load static %}
+<style>
+    .product-card-wrapper {
+        padding: 12px;
+        margin-bottom: 24px;
+    }
+
+    .product-cart-wrap {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        position: relative;
+    }
+
+    .product-cart-wrap:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .product-img-action-wrap {
+        overflow: hidden;
+        border-radius: 16px 16px 0 0;
+        background: #f8f9fa;
+    }
+
+    .product-img {
+        width: 100%;
+        height: 260px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .product-cart-wrap:hover img {
+        transform: scale(1.05);
+    }
+
+    .product-content-wrap {
+        padding: 16px;
+    }
+
+    .product-category p {
+        color: #888;
+        font-size: 13px;
+        margin: 0 0 5px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+    }
+
+    .product-content-wrap h5 {
+        color: #333;
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 10px;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 42px;
+    }
+
+    .product-price {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 6px;
+    }
+
+    .offer-price {
+        color: #e74c3c;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .old-price {
+        color: #aaa;
+        text-decoration: line-through;
+        font-size: 14px;
+    }
+
+    .product-discount span {
+        background: #27ae60;
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 12px;
+    }
+
+    .product-action-btn {
+        background: transparent;
+        border: 1.5px solid #ddd;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .product-action-btn svg {
+        width: 20px;
+        height: 20px;
+        color: #444;
+        transition: all 0.3s ease;
+    }
+
+    .product-action-btn:hover {
+        border-color: #27ae60;
+    }
+
+    .product-action-btn:hover svg {
+        color: #27ae60;
+    }
+
+    .product-action-btn.active {
+        border-color: #27ae60;
+        background: #27ae60;
+    }
+
+    .product-action-btn.active svg {
+        color: #fff;
+    }
+</style>
+
+<div class="col-lg-3 col-md-4 col-12 col-sm-6 product-card-wrapper">
+    <div class="product-cart-wrap">
+        <div class="product-img-action-wrap">
+            <a href="{% url 'product:product-detail-page' product.id %}">
+                <div class="product-img">
+                    {% with product.product_variant_set.first as variant %}
+                        {% if variant and variant.product_variant_images_set.first %}
+                            <img src="{{ variant.product_variant_images_set.first.images.url }}" alt="{{ product.product_name }}">
+                        {% elif product.thumbnail %}
+                            <img src="{{ product.thumbnail.url }}" alt="{{ product.product_name }}">
+                        {% else %}
+                            <img src="{% static 'images/No_Image-1024.webp' %}" alt="{{ product.product_name }}">
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </a>
+        </div>
+        <div class="product-content-wrap">
+            <div class="product-category">
+                <p>{{ product.product_brand.brand_name }}</p>
+            </div>
+            <h5>{{ product.product_name }}</h5>
+            <div class="product-price">
+                {% if product.offer_price < product.price %}
+                    <span class="offer-price">₹{{ product.offer_price }}</span>
+                    <span class="old-price">₹{{ product.price }}</span>
+                {% else %}
+                    <span class="offer-price">₹{{ product.price }}</span>
+                {% endif %}
+            </div>
+            {% if product.percentage_discount > 0 %}
+                <div class="product-discount">
+                    <span>{{ product.percentage_discount }}% OFF</span>
+                </div>
+            {% endif %}
+
+            <div class="action-buttons">
+                <!-- Wishlist button -->
+                <button onclick="toggleWishlist({{ product.id }})" id="wishlist-btn-{{ product.id }}" class="product-action-btn" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+                        <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385C2.925 9.482 5.314 11.93 8 14.534c2.686-2.604 5.075-5.052 6.286-7.096.955-1.885.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748z"/>
+                    </svg>
+                </button>
+
+                <!-- Cart button -->
+                <button onclick="toggleCart({{ product.id }})" id="cart-btn-{{ product.id }}" class="product-action-btn" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" class="bi bi-cart" viewBox="0 0 16 16">
+                        <path d="M0 1a1 1 0 0 1 1-1h1.11a.5.5 0 0 1 .485.379l.715 3.59L3.89 5H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 14H4a.5.5 0 0 1-.491-.408L1.01 1.607 0 1zm3.14 5l1.313 7h7.093l1.313-7H3.14zM5.5 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm7 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -247,147 +247,37 @@
         </section>
         
         <section class="product-tabs section-padding wow fadeIn animated">
-            <div class="container">
-                <div class="tab-header">
-                    <ul class="nav nav-tabs" id="myTab" role="tablist">
-                        {% for category in categories|slice:":3" %}
-                            <li class="nav-item" role="presentation">
-                                <a class="nav-link {% if category.id|stringformat:"s" in selected_categories %}active{% endif %}" 
-                                    id="nav-tab-{{ category.id }}" 
-                                    href="{% url 'product:shop-page' %}?category={{ category.id }}" 
-                                    role="tab" 
-                                    aria-controls="tab-{{ category.id }}" 
-                                    aria-selected="{% if category.id|stringformat:"s" in selected_categories %}true{% else %}false{% endif %}">
-                                    {{ category.category_name }}
-                                </a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                    <a href="{% url 'product:shop-page' %}" class="view-more d-none d-md-flex">View More<i class="fi-rs-angle-double-small-right"></i></a>
-                </div>
-                
-                
-        
-                <div class="tab-content wow fadeIn animated" id="myTabContent">
-                    <div class="tab-pane fade show active" id="tab-one" role="tabpanel" aria-labelledby="tab-one">
-                        <div class="row product-grid-4">
-                            {% for product in products %}
-                            <div class="col-lg-3 col-md-4 col-12 col-sm-6 product-card-wrapper">
-                                <div class="product-cart-wrap">
-                                    <div class="product-img-action-wrap">
-                                    <a href="{% url 'product:product-detail-page' product.id %}">
-                                        <div class="product-img product-img-zoom">
-                                            
-                                                {% if product.thumbnail %}
-                                                    <img class="default-img" src="{{ product.thumbnail.url }}" alt="{{ product.product_name }}">
-                                                {% else %}
-                                                    <img class="default-img" src="{% static 'path/to/default/image.jpg' %}" alt="{{ product.product_name }}">
-                                                {% endif %}
-                                            
-                                        </div>
-                                        </div>
-                                        <div class="product-content-wrap">
-                                            <div class="product-category">
-                                                <p>{{ product.product_category }}</p>
-                                            </div>
-                                            <h2>{{ product.product_name }}</h2>
-                                            <div class="product-discount">
-                                                <span>Discount: {{ product.percentage_discount }}%</span>
-                                            </div>
-                                            <div class="product-price">
-                                                <span class="offer-price">₹{{ product.offer_price }}</span>
-                                                <span class="old-price">₹{{ product.price }}</span>
-                                            </div>
-                                        </div>
-                                    </a>    
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
+    <div class="container">
+        <div class="tab-header">
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                {% for category in categories|slice:":3" %}
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link {% if category.id|stringformat:"s" in selected_categories %}active{% endif %}" 
+                           id="nav-tab-{{ category.id }}" 
+                           href="{% url 'product:shop-page' %}?category={{ category.id }}" 
+                           role="tab" 
+                           aria-controls="tab-{{ category.id }}" 
+                           aria-selected="{% if category.id|stringformat:"s" in selected_categories %}true{% else %}false{% endif %}">
+                           {{ category.category_name }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <a href="{% url 'product:shop-page' %}" class="view-more d-none d-md-flex">View More<i class="fi-rs-angle-double-small-right"></i></a>
+        </div>
+        <div class="tab-content wow fadeIn animated" id="myTabContent">
+            <div class="tab-pane fade show active" id="tab-one" role="tabpanel">
+                <div class="row product-grid-4">
+                    {% for product in products %}
+                        {% include 'user_side/product/product_card.html' %}
+                    {% endfor %}
                 </div>
             </div>
-        </section>
-        
-    
-        <section class="bg-grey-9 section-padding">
-            <div class="container pt-15 pb-25">
-                <div class="heading-tab d-flex">
-                    <div class="heading-tab-left wow fadeIn animated">
-                        <h3 class="section-title mb-20"><span>Monthly</span> Best Sell</h3>
-                    </div>
-                    <div class="heading-tab-right wow fadeIn animated">
-                        <ul class="nav nav-tabs" id="myTab" role="tablist">
-                            {% for category in categories|slice:":3" %}
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link {% if category.id|stringformat:"s" in selected_categories %}active{% endif %}" 
-                                        id="nav-tab-{{ category.id }}" 
-                                        href="{% url 'product:shop-page' %}?category={{ category.id }}" 
-                                        role="tab" 
-                                        aria-controls="tab-{{ category.id }}" 
-                                        aria-selected="{% if category.id|stringformat:"s" in selected_categories %}true{% else %}false{% endif %}">
-                                        {{ category.category_name }}
-                                    </a>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-lg-3 d-none d-lg-flex">
-                        <div class="banner-img style-2 wow fadeIn animated">
-                            <img src="{% static 'images/monthlybestsell.jpg' %}" alt="">
-                            <div class="banner-text">
-                                <span>Best Sell</span>
-                                <h4 class="mt-5">buy with <br>Discount</h4>
-                                <a href="{% url 'product:shop-page' %}" class="text-white">Shop Now <i class="fi-rs-arrow-right"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-9 col-md-12">
-                        <div class="tab-content wow fadeIn animated" id="myTabContent-1">
-                            <div class="tab-pane fade show active" id="tab-one-1" role="tabpanel" aria-labelledby="tab-one-1">
-                                <div class="carausel-4-columns-cover arrow-center position-relative">
-                                    <div class="slider-arrow slider-arrow-2 carausel-4-columns-arrow" id="carausel-4-columns-arrows"></div>
-                                    <div class="carausel-4-columns carausel-arrow-center" id="carausel-4-columns">
-                                        {% for product in products %}
-                                        <div class="product-cart-wrap uniform-card">
-                                            <div class="product-img-action-wrap uniform-img-wrap">
-                                                <div class="product-img product-img-zoom uniform-img">
-                                                    <a href="{% url 'product:product-detail-page' product.id %}">
-                                                        {% if product.thumbnail %}
-                                                            <img class="default-img" src="{{ product.thumbnail.url }}" alt="{{ product.product_name }}">
-                                                        {% else %}
-                                                            <img class="default-img" src="{% static 'path/to/default/image.jpg' %}" alt="{{ product.product_name }}">
-                                                        {% endif %}
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <div class="product-content-wrap uniform-content">
-                                                <div class="product-category">
-                                                    <a href="shop-grid-right.html">{{ product.product_category }}</a>
-                                                </div>
-                                                <h2><a href="{% url 'product:product-detail-page' product.id %}">{{ product.product_name }}</a></h2>
-                                                <div>
-                                                    <span>Discount: {{ product.percentage_discount }}%</span>
-                                                </div>
-                                                <div class="product-price">
-                                                    <span>₹{{ product.offer_price }} </span>
-                                                    <span class="old-price">₹{{ product.price }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% endfor %}
-                                    </div>
-                                    
-                                    
-                                </div>
-                            </div>
-                    </div>
-                    <!--End Col-lg-9-->
-                </div>
-            </div>
-        </section>
+        </div>
+    </div>
+</section>
+
+
 
         <section class="featured section-padding">
             <div class="container">
@@ -445,6 +335,36 @@
             });
         </script>
     {% endif %}
+        <script src="{% static 'user_side/assets/js/product_actions.js' %}"></script>
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            {% for product in products %}
+                checkStatus({{ product.id }});
+            {% endfor %}
+
+            {% if messages %}
+                const messages = [
+                    {% for message in messages %}
+                        {
+                            level: "{{ message.tags }}",
+                            text: "{{ message|escapejs }}"
+                        },
+                    {% endfor %}
+                ];
+                messages.forEach(message => {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-right',
+                        icon: message.level === 'success' ? 'success' : 'error',
+                        title: message.text,
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                });
+            {% endif %}
+        });
+    </script>
+
 {% endblock %}
         
         
