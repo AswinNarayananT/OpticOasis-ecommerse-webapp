@@ -28,9 +28,8 @@
     <div class="screen-overlay"></div>
     <aside class="navbar-aside" id="offcanvas_aside">
         <div class="aside-top">
-            <a href="index.html" class="brand-wrap">
-                <h1>Optic Oasis</h1>
-                {% comment %} <img src="{% static 'assets/imgs/theme/logo.svg' %}" class="logo" alt="Evara Dashboard"> {% endcomment %}
+            <a href="{% url 'admin_dashboard' %}" class="brand-wrap">
+                <h2>Optic Oasis</h2>
             </a>
             <div>
                 <button class="btn btn-icon btn-aside-minimize"> <i class="text-muted material-icons md-menu_open"></i> </button>
@@ -45,32 +44,32 @@
                 </li>
                 <li class="menu-item">
                     <a class="menu-link" href="{% url 'user_list' %}"> <i  class="icon material-icons md-person"></i>
-                        <span class="text">User Management</span>
+                        <span class="text">UserManagement</span>
                     </a>
                 </li>
-                <li class="menu-item">
+                 <li class="menu-item">
                     <a class="menu-link" href="{% url 'category:list-category' %}"><i class="icon material-icons md-dashboard"></i>
-                        <span class="text">Category Management</span>
+                        <span class="text">CategoryManagement</span>
                     </a>
                 </li>
                 <li class="menu-item">
                     <a class="menu-link" href="{% url 'brand:list-brand' %}"> <i class="icon material-icons md-verified"></i>
-                        <span class="text">Brand Management</span>
+                        <span class="text">BrandManagement</span>
                     </a>
                 </li>
                 <li class="menu-item">
                     <a class="menu-link" href="{% url 'product:list-product' %}"><i class="icon material-icons md-shopping_bag"></i>
-                        <span class="text">Product Management</span>
+                        <span class="text">ProductManagement</span>
                     </a>
                 </li>
                 <li class="menu-item">
                     <a class="menu-link" href="{% url 'orders:list-order' %}"> <i class="icon material-icons md-receipt_long"></i>
-                        <span class="text">Order Management</span>
+                        <span class="text">OrderManagement</span>
                     </a>
                 </li>
                 <li class="menu-item">
                     <a class="menu-link" href="{% url 'orders:returned-orders' %}"> <i class="icon material-icons md-replay"></i>
-                        <span class="text">Returned Order</span>
+                        <span class="text">ReturnedOrder</span>
                     </a>
                 </li>
                 <li class="menu-item">
@@ -78,16 +77,6 @@
                         <span class="text">Coupon Management</span>
                     </a>
                 </li>
-                {% comment %} <li class="menu-item has-submenu">
-                    <a class="menu-link" href="#"> <i class="icon material-icons md-monetization_on"></i>
-                        <span class="text">Logout</span>
-                    </a>
-                    <div class="submenu">
-                        <a href="page-transactions-1.html">Transaction 1</a>
-                        <a href="page-transactions-2.html">Transaction 2</a>
-                        <a href="page-transactions-details.html">Transaction Details</a>
-                    </div>
-                </li> {% endcomment %}
             <br>
             <br>
         </nav>
@@ -95,52 +84,16 @@
     <main class="main-wrap">
         <header class="main-header navbar">
             <div class="col-search">
-                <form class="searchform">
-                    <div class="input-group">
-                        <input list="search_terms" type="text" class="form-control" placeholder="Search term">
-                        <button class="btn btn-light bg" type="button"> <i class="material-icons md-search"></i></button>
-                    </div>
-                    <datalist id="search_terms">
-                        <option value="Products">
-                        <option value="New orders">
-                        <option value="Apple iphone">
-                        <option value="Ahmed Hassan">
-                    </datalist>
-                </form>
             </div>
             <div class="col-nav">
                 <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside"> <i class="material-icons md-apps"></i> </button>
                 <ul class="nav">
                     <li class="nav-item">
-                        <a class="nav-link btn-icon" href="#">
-                            <i class="material-icons md-notifications animation-shake"></i>
-                            <span class="badge rounded-pill">3</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link btn-icon darkmode" href="#"> <i class="material-icons md-nights_stay"></i> </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="#" class="requestfullscreen nav-link btn-icon"><i class="material-icons md-cast"></i></a>
-                    </li>
                     <li class="dropdown nav-item">
-                        <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownLanguage" aria-expanded="false"><i class="material-icons md-public"></i></a>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownLanguage">
-                            <a class="dropdown-item text-brand" href="#"><img src="{% static 'assets/imgs/theme/flag-us.png' %}" alt="English">English</a>
-                            <a class="dropdown-item" href="#"><img src="{% static 'assets/imgs/theme/flag-fr.png' %}" alt="Français">Français</a>
-                            <a class="dropdown-item" href="#"><img src="{% static 'assets/imgs/theme/flag-jp.png' %}" alt="Français">日本語</a>
-                            <a class="dropdown-item" href="#"><img src="{% static 'assets/imgs/theme/flag-cn.png' %}" alt="Français">中国人</a>
-                        </div>
-                    </li>
-                    <li class="dropdown nav-item">
-                        <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownAccount" aria-expanded="false"> <img class="img-xs rounded-circle" src="{% static 'assets/imgs/people/avatar2.jpg' %}" alt="User"></a>
+                        <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownAccount" aria-expanded="false"> <img class="img-xs rounded-circle" src="{% static 'user_side/assets/imgs/theme/opticoasis.png' %}" alt="User"></a>
                         <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAccount">
-                            <a class="dropdown-item" href="#"><i class="material-icons md-perm_identity"></i>Edit Profile</a>
-                            <a class="dropdown-item" href="#"><i class="material-icons md-settings"></i>Account Settings</a>
-                            <a class="dropdown-item" href="#"><i class="material-icons md-account_balance_wallet"></i>Wallet</a>
-                            <a class="dropdown-item" href="#"><i class="material-icons md-receipt"></i>Billing</a>
-                            <a class="dropdown-item" href="#"><i class="material-icons md-help_outline"></i>Help center</a>
-                            <div class="dropdown-divider"></div>
                             <a class="dropdown-item text-danger" href="{% url 'admin-logout' %}"><i class="material-icons md-exit_to_app"></i>Logout</a>
                         </div>
                     </li>

@@ -25,7 +25,7 @@ import uuid
 def admin_order_list(request):
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', 'Show all')
-    items_per_page = request.GET.get('items_per_page', 10)
+    items_per_page = request.GET.get('items_per_page', 15)
 
 
     orders = OrderMain.objects.all().order_by('-id')
@@ -49,12 +49,11 @@ def admin_order_list(request):
     return render(request, 'admin_side/order/order_list.html', context)
 
 
-
+@admin_required
 def returned_orders(request):
     search_query = request.GET.get('search', '')
-    items_per_page = int(request.GET.get('items_per_page', 4))
+    items_per_page = int(request.GET.get('items_per_page', 10))
 
-    # Filter orders with return requests
     orders = OrderMain.objects.filter(returnrequest__isnull=False).distinct()
     
     if search_query:
@@ -62,13 +61,22 @@ def returned_orders(request):
 
     order_list = []
     for order in orders:
-        return_requests = ReturnRequest.objects.filter(order_main=order).order_by('-created_at')
+        return_requests = ReturnRequest.objects.filter(order_main=order).order_by('-id')
+        if return_requests.exists():
+            latest_return_id = return_requests.first().id 
+        else:
+            latest_return_id = 0
+
         has_pending_returns = return_requests.filter(status='Pending').exists()
         order_list.append({
             'order': order,
             'has_pending_returns': has_pending_returns,
             'return_requests': return_requests,
+            'latest_return_id': latest_return_id,
         })
+
+    order_list = sorted(order_list, key=lambda x: x['latest_return_id'], reverse=True)
+
 
     paginator = Paginator(order_list, items_per_page)
     page_number = request.GET.get('page')
@@ -77,7 +85,7 @@ def returned_orders(request):
     context = {
         'page_obj': page_obj,
         'search_query': search_query,
-        'items_per_page': items_per_page,
+        'items_per_page': str(items_per_page), 
     }
 
     return render(request, 'admin_side/order/return_order.html', context)
@@ -131,7 +139,7 @@ def change_order_status(request, order_id):
     return redirect('orders:admin-orders-details', oid=order.id)
 
 
-
+@admin_required
 def update_return_request(request, return_request_id):
     return_request = get_object_or_404(ReturnRequest, id=return_request_id)
     

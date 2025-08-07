@@ -4058,7 +4058,7 @@ body.offcanvas-active {
           align-items: center;
 }
 
-.main-header .brand-wrap img.logo {
+.main-header .brand-wrap a {
   max-width: 130px;
   margin-top: 5px;
 }

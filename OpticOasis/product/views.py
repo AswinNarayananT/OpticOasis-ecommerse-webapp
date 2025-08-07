@@ -361,11 +361,17 @@ def edit_variant(request, variant_id):
         variant.variant_stock = variant_stock
         variant.variant_status = variant_status
 
-        if request.FILES.get('images'):
-            Product_variant_images.objects.create(
-                product_variant=variant,
-                images=request.FILES.get('images')
-            )
+        images = request.FILES.getlist('images')
+        
+        if images:
+            for image in images:
+                Product_variant_images.objects.create(product_variant=variant, images=image)
+
+        # if request.FILES.get('images'):
+        #     Product_variant_images.objects.create(
+        #         product_variant=variant,
+        #         images=request.FILES.get('images')
+        #     )
         
         try:
             variant.save()

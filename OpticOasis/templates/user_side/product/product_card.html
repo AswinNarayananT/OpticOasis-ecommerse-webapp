@@ -1,152 +1,232 @@
 {% load static %}
 <style>
     .product-card-wrapper {
-        padding: 12px;
-        margin-bottom: 24px;
+        padding: 8px !important;
+        margin-bottom: 16px !important;
     }
 
     .product-cart-wrap {
-        background: #ffffff;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-        transition: all 0.3s ease;
-        border: 1px solid rgba(0, 0, 0, 0.06);
-        position: relative;
+        background: #ffffff !important;
+        border-radius: 12px !important;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+        overflow: hidden !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        border: 1px solid rgba(0, 0, 0, 0.04) !important;
+        position: relative !important;
+        height: auto !important;
     }
 
     .product-cart-wrap:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        transform: translateY(-4px) !important;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12) !important;
+        border-color: rgba(0, 0, 0, 0.08) !important;
     }
 
     .product-img-action-wrap {
-        overflow: hidden;
-        border-radius: 16px 16px 0 0;
-        background: #f8f9fa;
+        overflow: hidden !important;
+        border-radius: 12px 12px 0 0 !important;
+        background: #f8f9fa !important;
+        position: relative !important;
+    }
+
+    .product-badges {
+        position: absolute !important;
+        top: 8px !important;
+        left: 8px !important;
+        z-index: 10 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+    }
+
+    .category-badge {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px) !important;
+        color: #666 !important;
+        font-size: 10px !important;
+        font-weight: 500 !important;
+        padding: 3px 6px !important;
+        border-radius: 6px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    }
+
+    .discount-badge {
+        background: linear-gradient(135deg, #ff4757, #ff3838) !important;
+        color: #fff !important;
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        padding: 3px 6px !important;
+        border-radius: 6px !important;
+        box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3) !important;
     }
 
     .product-img {
-        width: 100%;
-        height: 260px;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        width: 100% !important;
+        height: 200px !important;
+        overflow: hidden !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: #fff !important;
     }
 
     .product-img img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.5s ease;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
 
-    .product-cart-wrap:hover img {
-        transform: scale(1.05);
+    .product-cart-wrap:hover .product-img img {
+        transform: scale(1.08) !important;
     }
 
     .product-content-wrap {
-        padding: 16px;
-    }
-
-    .product-category p {
-        color: #888;
-        font-size: 13px;
-        margin: 0 0 5px 0;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 500;
+        padding: 12px !important;
+        background: #fff !important;
     }
 
     .product-content-wrap h5 {
-        color: #333;
-        font-size: 16px;
-        font-weight: 600;
-        margin: 0 0 10px;
-        line-height: 1.4;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        min-height: 42px;
+        color: #2c3e50 !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        margin: 0 0 6px 0 !important;
+        line-height: 1.3 !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        min-height: 36px !important;
+        text-decoration: none !important;
     }
 
     .product-price {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 6px;
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        margin-bottom: 8px !important;
+        flex-wrap: wrap !important;
     }
 
     .offer-price {
-        color: #e74c3c;
-        font-size: 18px;
-        font-weight: 700;
+        color: #088178  !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
     }
 
     .old-price {
-        color: #aaa;
-        text-decoration: line-through;
-        font-size: 14px;
-    }
-
-    .product-discount span {
-        background: #27ae60;
-        color: #fff;
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 500;
+        color: #95a5a6 !important;
+        text-decoration: line-through !important;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        margin: 0 !important;
     }
 
     .action-buttons {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 12px;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-top: 8px !important;
+        gap: 8px !important;
     }
 
     .product-action-btn {
-        background: transparent;
-        border: 1.5px solid #ddd;
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
+        background: transparent !important;
+        border: none !important;
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 50% !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.2s ease !important;
+        position: relative !important;
+        color: #7f8c8d !important;
+        padding: 0 !important;
     }
 
     .product-action-btn svg {
-        width: 20px;
-        height: 20px;
-        color: #444;
-        transition: all 0.3s ease;
+        width: 18px !important;
+        height: 18px !important;
+        transition: all 0.2s ease !important;
+        stroke-width: 1.5 !important;
     }
 
     .product-action-btn:hover {
-        border-color: #27ae60;
-    }
-
-    .product-action-btn:hover svg {
-        color: #27ae60;
+        background: rgba(52, 152, 219, 0.1) !important;
+        color: #3498db !important;
+        transform: scale(1.1) !important;
     }
 
     .product-action-btn.active {
-        border-color: #27ae60;
-        background: #27ae60;
+        background: #3498db !important;
+        color: #fff !important;
+        transform: scale(1.05) !important;
     }
 
-    .product-action-btn.active svg {
-        color: #fff;
+    .product-action-btn.wishlist:hover {
+        background: rgba(231, 76, 60, 0.1) !important;
+        color: #e74c3c !important;
+    }
+
+    .product-action-btn.wishlist.active {
+        background: #e74c3c !important;
+        color: #fff !important;
+    }
+
+    .product-action-btn.cart:hover {
+        background: rgba(46, 204, 113, 0.1) !important;
+        color: #2ecc71 !important;
+    }
+
+    .product-action-btn.cart.active {
+        background: #2ecc71 !important;
+        color: #fff !important;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .product-img {
+            height: 180px !important;
+        }
+        
+        .product-content-wrap h5 {
+            font-size: 13px !important;
+            min-height: 32px !important;
+        }
+        
+        .offer-price {
+            font-size: 15px !important;
+        }
+    }
+
+    /* Link styling fix */
+    .product-cart-wrap a {
+        text-decoration: none !important;
+        color: inherit !important;
+    }
+
+    .product-cart-wrap a:hover {
+        text-decoration: none !important;
+        color: inherit !important;
     }
 </style>
 
 <div class="col-lg-3 col-md-4 col-12 col-sm-6 product-card-wrapper">
     <div class="product-cart-wrap">
         <div class="product-img-action-wrap">
+            <!-- Badges over image -->
+            <div class="product-badges">
+                <div class="category-badge">{{ product.product_brand.brand_name }}</div>
+                {% if product.percentage_discount > 0 %}
+                    <div class="discount-badge">{{ product.percentage_discount }}% OFF</div>
+                {% endif %}
+            </div>
+            
             <a href="{% url 'product:product-detail-page' product.id %}">
                 <div class="product-img">
                     {% with product.product_variant_set.first as variant %}
@@ -161,11 +241,12 @@
                 </div>
             </a>
         </div>
+        
         <div class="product-content-wrap">
-            <div class="product-category">
-                <p>{{ product.product_brand.brand_name }}</p>
-            </div>
-            <h5>{{ product.product_name }}</h5>
+            <a href="{% url 'product:product-detail-page' product.id %}">
+                <h5>{{ product.product_name }}</h5>
+            </a>
+            
             <div class="product-price">
                 {% if product.offer_price < product.price %}
                     <span class="offer-price">₹{{ product.offer_price }}</span>
@@ -174,24 +255,19 @@
                     <span class="offer-price">₹{{ product.price }}</span>
                 {% endif %}
             </div>
-            {% if product.percentage_discount > 0 %}
-                <div class="product-discount">
-                    <span>{{ product.percentage_discount }}% OFF</span>
-                </div>
-            {% endif %}
 
             <div class="action-buttons">
                 <!-- Wishlist button -->
-                <button onclick="toggleWishlist({{ product.id }})" id="wishlist-btn-{{ product.id }}" class="product-action-btn" type="button">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
-                        <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385C2.925 9.482 5.314 11.93 8 14.534c2.686-2.604 5.075-5.052 6.286-7.096.955-1.885.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748z"/>
+                <button onclick="toggleWishlist({{ product.id }})" id="wishlist-btn-{{ product.id }}" class="product-action-btn wishlist" type="button" title="Add to Wishlist">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                     </svg>
                 </button>
 
                 <!-- Cart button -->
-                <button onclick="toggleCart({{ product.id }})" id="cart-btn-{{ product.id }}" class="product-action-btn" type="button">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" class="bi bi-cart" viewBox="0 0 16 16">
-                        <path d="M0 1a1 1 0 0 1 1-1h1.11a.5.5 0 0 1 .485.379l.715 3.59L3.89 5H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 14H4a.5.5 0 0 1-.491-.408L1.01 1.607 0 1zm3.14 5l1.313 7h7.093l1.313-7H3.14zM5.5 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm7 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+                <button onclick="toggleCart({{ product.id }})" id="cart-btn-{{ product.id }}" class="product-action-btn cart" type="button" title="Add to Cart">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 7M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13v4a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-4m8 0V9a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v4"/>
                     </svg>
                 </button>
             </div>
