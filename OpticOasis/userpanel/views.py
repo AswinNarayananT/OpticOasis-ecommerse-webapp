@@ -222,6 +222,10 @@ def return_order(request, order_id):
             reason=reason
         )
         order.order_status = 'Return requested'
+        active_items = order.ordersub_set.filter(is_active=True)
+        for item in active_items:
+            item.status='Return requested'
+            item.save()
         order.save()
         messages.success(request, 'Return request has been submitted successfully.')
         return redirect('userpanel:order-list')

@@ -1,6 +1,169 @@
 {% extends "admin_side/base.html" %}
 {% load static %}
+
 {% block content %}
+<style>
+    /* Simple black and white styling for order details */
+    .info-section {
+        margin: 20px 0;
+    }
+    
+    .info-card {
+        background: #f8f8f8;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 15px;
+        height: 100%;
+    }
+    
+    .info-card h6 {
+        color: #000;
+        font-weight: 600;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 5px;
+    }
+    
+    .info-card p {
+        color: #333;
+        line-height: 1.5;
+        margin: 0;
+    }
+    
+    /* Product table styling */
+    .table-container {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 20px;
+    }
+    
+    .table thead th {
+        background: #000;
+        color: #fff;
+        font-weight: 600;
+        padding: 15px 10px;
+        border: none;
+    }
+    
+    .table tbody td {
+        padding: 15px 10px;
+        border-color: #eee;
+        vertical-align: middle;
+    }
+    
+    .product-image-container {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .product-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .status-badge {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        padding: 2px 6px;
+        font-size: 10px;
+        font-weight: bold;
+        border-radius: 3px;
+        z-index: 10;
+    }
+    
+    .status-canceled {
+        background: #000;
+        color: #fff;
+    }
+    
+    .status-approved {
+        background: #333;
+        color: #fff;
+    }
+    
+    .status-rejected {
+        background: #666;
+        color: #fff;
+    }
+    
+    .product-name {
+        font-weight: 500;
+        color: #000;
+    }
+    
+    .price-text {
+        font-weight: 600;
+        color: #000;
+    }
+    
+    /* Total section styling */
+    .total-section {
+        background: #f5f5f5;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 20px;
+        margin-top: 15px;
+    }
+    
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .total-row:last-child {
+        border-bottom: 2px solid #000;
+        font-weight: 700;
+        font-size: 18px;
+        margin-top: 10px;
+        padding-top: 15px;
+    }
+    
+    .total-label {
+        color: #000;
+        font-weight: 500;
+    }
+    
+    .total-value {
+        color: #000;
+        font-weight: 600;
+    }
+    
+    .status-display {
+        background: #000;
+        color: #fff;
+        padding: 5px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    @media (max-width: 768px) {
+        .info-card {
+            margin-bottom: 15px;
+        }
+        
+        .table-responsive {
+            font-size: 14px;
+        }
+        
+        .product-image-container {
+            width: 60px;
+            height: 60px;
+        }
+    }
+</style>
+
 <section class="content-main">
     <div class="content-header">
         <div>
@@ -19,7 +182,6 @@
                 </div>
                 
                 <div class="col-lg-6 col-md-6 ms-auto text-md-end">
-                    
                     <form method="post" action="{% url 'orders:change_order_status' orders.id %}">
                         {% csrf_token %}
                         <select class="form-select d-inline-block mb-lg-0 mb-15 mw-200" name="order_status" id="order_status">
@@ -33,136 +195,128 @@
                         </select>
                         <button class="btn btn-primary" type="submit">Save</button>
                     </form>
-                    {% comment %} <a class="btn btn-secondary print ms-2" href="#"><i class="icon material-icons md-print"></i></a>
-                    <form method="post" action="">
-                        {% csrf_token %}
-                    <button class="btn btn-primary" type="submit"><a href="">Save</a></button>
-                    </form> {% endcomment %}
                 </div>
             </div>
-        </header> <!-- card-header end// -->
+        </header>
+        
         <div class="card-body">
-            <div class="row mb-50 mt-20 order-info-wrap">
+            <div class="row mb-50 mt-20 order-info-wrap info-section">
                 <div class="col-md-4">
-                    <article class="icontext align-items-start">
+                    <div class="info-card">
                         <span class="icon icon-sm rounded-circle bg-primary-light">
                             <i class="text-primary material-icons md-person"></i>
                         </span>
-                        <div class="text">
-                            <h6 class="mb-1">Customer</h6>
-                            <p class="mb-1">
-                                {{ orders.address.name }} <br> {{ orders.user.email }} <br> +91 {{ orders.address.phone_number }}
-                            </p>
-                            {% comment %} <a href="#">View profile</a> {% endcomment %}
-                        </div>
-                    </article>
-                </div> <!-- col// -->
+                        <h6>Customer</h6>
+                        <p>
+                            {{ orders.address.name }} <br> 
+                            {{ orders.user.email }} <br> 
+                            +91 {{ orders.address.phone_number }}
+                        </p>
+                    </div>
+                </div>
+                
                 <div class="col-md-4">
-                    <article class="icontext align-items-start">
+                    <div class="info-card">
                         <span class="icon icon-sm rounded-circle bg-primary-light">
                             <i class="text-primary material-icons md-local_shipping"></i>
                         </span>
-                        <div class="text">
-                            <h6 class="mb-1">Order info</h6>
-                            <p class="mb-1">
-                                Shipping: {{ orders.address.name }}<br> Pay method: {{ orders.payment_option }}  <br>Pay status:{{ orders.payment_status }} <br> Status: {{ orders.order_status }}
-                            </p>
-                            {% comment %} <a href="#">Download info</a> {% endcomment %}
-                        </div>
-                    </article>
-                </div> <!-- col// -->
+                        <h6>Order info</h6>
+                        <p>
+                            Shipping: {{ orders.address.name }}<br> 
+                            Pay method: {{ orders.payment_option }}<br>
+                            Pay status: {{ orders.payment_status }} <br> 
+                            Status: {{ orders.order_status }}
+                        </p>
+                    </div>
+                </div>
+                
                 <div class="col-md-4">
-                    <article class="icontext align-items-start">
+                    <div class="info-card">
                         <span class="icon icon-sm rounded-circle bg-primary-light">
                             <i class="text-primary material-icons md-place"></i>
                         </span>
-                        <div class="text">
-                            <h6 class="mb-1">Deliver to</h6>
-                            <p class="mb-1">
-                            Address : {{ orders.address.country }}, {{ orders.address.state }} <br>{{ orders.address.district }}, {{ orders.address.street_name }}<br>{{ orders.address.house_name }}<br>PIN: {{ orders.address.pin_number}}
-                            </p>
-                        </div>
-                    </article>
-                </div> <!-- col// -->
-            </div> <!-- row // -->
+                        <h6>Deliver to</h6>
+                        <p>
+                            Address: {{ orders.address.country }}, {{ orders.address.state }} <br>
+                            {{ orders.address.district }}, {{ orders.address.street_name }}<br>
+                            {{ orders.address.house_name }}<br>
+                            PIN: {{ orders.address.pin_number}}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
             <div class="row">
                 <div class="col-lg-12">
                     <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th width="20%">Product</th>
-                                    <th width="20%">Name</th>
-                                    <th width="20%">Unit Price</th>
-                                    <th width="20%">Quantity</th>
-                                    <th width="20%" class="text-end">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th width="20%">Product</th>
+                                        <th width="20%">Name</th>
+                                        <th width="20%">Unit Price</th>
+                                        <th width="20%">Quantity</th>
+                                        <th width="20%" class="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                                 {% for item in order_sub %}
-                                <tr>
-                                    <td class="align-middle">
-                                        <a class="itemside" href="#">
-                                            {% if item.variant.product_variant_images_set.first %}
-                                            <div class="left" style="width:100px; height:100px;">
-                                                <img src="{{ item.variant.product_variant_images_set.first.images.url }}" class="img-thumbnail" alt="{{ item.variant.product.product_name }}" style="width: 100%; height: auto;">
+                                    <tr>
+                                        <td>
+                                            <div class="product-image-container">
+                                                {% if item.status %}
+                                                <span class="status-badge 
+                                                    {% if item.status == 'Canceled' %}status-canceled
+                                                    {% elif item.status == 'Return Approved' %}status-approved
+                                                    {% elif item.status == 'Return Rejected' %}status-rejected
+                                                    {% endif %}">
+                                                    {{ item.status }}
+                                                </span>
+                                                {% endif %}
+
+                                                {% if item.variant.product_variant_images_set.first %}
+                                                <img src="{{ item.variant.product_variant_images_set.first.images.url }}" 
+                                                     alt="{{ item.variant.product.product_name }}">
+                                                {% endif %}
                                             </div>
-                                            {% endif %}
-                                        </a>
-                                    </td>
-                                    <td class="align-middle">{{ item.variant.product.product_name }}</td>
-                                    <td class="align-middle">₹{{ item.price }}</td>
-                                    <td class="align-middle">{{ item.quantity }}</td>
-                                    <td class="align-middle text-end">₹{{ item.total_cost }}</td>
-                                </tr>
+                                        </td>
+                                        
+                                        <td class="product-name">{{ item.variant.product.product_name }}</td>
+                                        <td class="price-text">₹{{ item.price }}</td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td class="text-end price-text">₹{{ item.total_cost }}</td>
+                                    </tr>
                                 {% endfor %}
-
-                                <tr>
-                                    <td colspan="5">
-                                        <div class="float-end text-end">
-                                            <dl class="dlist">
-                                                <dt>Subtotal:</dt>
-                                                <dd>₹{{ orders.total_amount }}</dd>
-                                            </dl>
-                                            <dl class="dlist">
-                                                <dt>Discount:</dt>
-                                                <dd>₹{{ orders.discount_amount }}</dd>
-                                            </dl>
-                                            
-                                            <dl class="dlist">
-                                                <dt>Grand total:</dt>
-                                                <dd><b class="h5">₹{{ orders.final_amount }}</b></dd>
-                                            </dl>
-                                            <dl class="dlist">
-                                                <dt class="text-muted">Status:</dt>
-                                                <dd>
-                                                    <span class="badge rounded-pill alert-success text-success">{{ orders.is_active }}</span>
-                                                </dd>
-                                            </dl>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div> <!-- table-responsive// -->
-                    
-                    {% comment %} <a class="btn btn-primary" href="page-orders-tracking.html">View Order Tracking</a> {% endcomment %}
-                </div> <!-- col// -->
-                {% comment %} <div class="col-lg-1"></div>
-                        <div  class="col-lg-4">
-
-                    <div class="h-25 pt-4">
-                        <div class="mb-3">
-                            <label>Notes</label>
-                            <textarea class="form-control" name="notes" id="notes" placeholder="Type some note"></textarea>
+                                </tbody>
+                            </table>
+                            
+                            <div class="total-section">
+                                <div class="total-row">
+                                    <span class="total-label">Subtotal:</span>
+                                    <span class="total-value">₹{{ orders.total_amount }}</span>
+                                </div>
+                                <div class="total-row">
+                                    <span class="total-label">Discount:</span>
+                                    <span class="total-value">₹{{ orders.discount_amount }}</span>
+                                </div>
+                                <div class="total-row">
+                                    <span class="total-label">Grand total:</span>
+                                    <span class="total-value">₹{{ orders.final_amount }}</span>
+                                </div>
+                                <div class="total-row">
+                                    <span class="total-label">Status:</span>
+                                    <span class="status-display">{{ orders.is_active }}</span>
+                                </div>
+                            </div>
                         </div>
-                        <button class="btn btn-primary">Save note</button>
                     </div>
-                </div> <!-- col// --> {% endcomment %}
+                </div>
             </div>
-        </div> <!-- card-body end// -->
-    </div> <!-- card end// -->
-</section> <!-- content-main end// -->
+        </div>
+    </div>
+</section>
+
 <footer class="main-footer font-xs">
     <div class="row pb-30 pt-15">
         <div class="col-sm-6">
