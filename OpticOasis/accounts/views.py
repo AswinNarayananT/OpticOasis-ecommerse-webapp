@@ -30,6 +30,11 @@ from django.http import HttpResponse
 from django.contrib.auth.forms import SetPasswordForm
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import EmailMultiAlternatives
+from django.utils.html import strip_tags
+from django.contrib.sites.shortcuts import get_current_site
+
+
 
 
 # Create your views here.
@@ -109,26 +114,73 @@ def verify_otp(request):
 
     return render(request, 'user_side/account/verify_otp.html')
 
+
 def resend_otp(request):
     user_data = request.session.get('user_data')
+
     if user_data:
         otp = get_random_string(length=6, allowed_chars='1234567890')
         print(otp)
         otp_generation_time = timezone.now().isoformat()
-        
+
         request.session['otp'] = otp
         request.session['otp_generation_time'] = otp_generation_time
 
-        send_mail(
-            'Your OTP Code',
-            f'Your OTP code is {otp}',
-            settings.DEFAULT_FROM_EMAIL,
-            [user_data['email']],
-            fail_silently=False,
+        # HTML email content
+        html_content = f"""
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2 style="color:#333;">Your New OTP Code</h2>
+            <p>We received a request to resend your One-Time Password (OTP).</p>
+
+            <div style="font-size: 24px; font-weight: bold; 
+                        background:#f3f3f3; padding: 12px 18px; 
+                        border-radius: 6px; width: fit-content;
+                        letter-spacing: 3px; margin: 10px 0;">
+                {otp}
+            </div>
+
+            <!-- Copy Button -->
+            <a href="#" 
+               onclick="navigator.clipboard.writeText('{otp}'); alert('OTP copied to clipboard!'); return false;"
+               style="
+                    display:inline-block;
+                    padding:10px 18px;
+                    background:#007bff;
+                    color:white; 
+                    text-decoration:none; 
+                    border-radius:5px;
+                    font-size:14px;">
+                Copy OTP
+            </a>
+
+            <p style="margin-top:20px;">This OTP is valid for <strong>5 minutes</strong>.</p>
+
+            <p style="color:red; font-size:13px;">
+                ⚠️ For your security, please do not share this OTP with anyone.
+            </p>
+
+            <p>If you didn’t request this, you can safely ignore this message.</p>
+
+            <p>Thank you,<br>The Support Team</p>
+        </div>
+        """
+
+        # fallback plain text
+        text_content = strip_tags(html_content)
+
+        email = EmailMultiAlternatives(
+            subject="Your New OTP Code",
+            body=text_content,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user_data['email']],
         )
+        email.attach_alternative(html_content, "text/html")
+        email.send()
+
         messages.success(request, 'A new OTP has been sent to your email.')
     else:
         messages.error(request, 'User data not found. Please register again.')
+
     return redirect('verify_otp')
 
 
@@ -164,6 +216,7 @@ def contact_us(request):
 def password_reset_request(request):
     if request.method == "POST":
         password_reset_form = PasswordResetForm(request.POST)
+        current_site = get_current_site(request)
         if password_reset_form.is_valid():
             data = password_reset_form.cleaned_data['email']
             associated_users = User.objects.filter(Q(email=data))
@@ -173,7 +226,7 @@ def password_reset_request(request):
                     email_template_name = "user_side/account/password_reset_email.txt"
                     c = {
                         "email": user.email,
-                        'domain': '127.0.0.1:8000',
+                        'domain': current_site.domain,
                         'site_name': 'Optic Oasis',
                         "uid": urlsafe_base64_encode(force_bytes(user.pk)),
                         "user": user,

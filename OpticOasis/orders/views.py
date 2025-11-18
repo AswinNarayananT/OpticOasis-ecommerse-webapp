@@ -234,7 +234,6 @@ def generate_unique_order_id():
     return str(uuid.uuid4())
 
 
-@csrf_exempt
 def order_placed(request):
     if request.method == "POST":
         try:
@@ -247,13 +246,12 @@ def order_placed(request):
                 messages.error(request, "Cart is empty.")
                 return redirect(f'{reverse("cart:checkout")}?cart_items={",".join(cart_item_ids)}&selected_address={selected_address_id}')
 
-
             cart_item_ids = cart_item_ids.split(',')
             cart_items = CartItem.objects.filter(id__in=cart_item_ids, cart__user=user)
+
             if not cart_items.exists():
                 messages.error(request, "No valid items found. Please try again.")
                 return redirect(f'{reverse("cart:checkout")}?cart_items={",".join(cart_item_ids)}&selected_address={selected_address_id}')
-
 
             for item in cart_items:
                 if item.quantity > item.variant.variant_stock:
@@ -264,128 +262,136 @@ def order_placed(request):
                     messages.error(request, f"{item.product.product_name} is no longer available.")
                     return redirect(f'{reverse("cart:checkout")}?cart_items={",".join(cart_item_ids)}&selected_address={selected_address_id}')
 
-                
             user_address = UserAddress.objects.get(id=selected_address_id)
 
-            order_address = OrderAddress.objects.create(
-                name=user_address.name,
-                phone_number=user_address.phone_number,
-                house_name=user_address.house_name,
-                street_name=user_address.street_name,
-                district=user_address.district,
-                state=user_address.state,
-                country=user_address.country,
-                pin_number=user_address.pin_number
-            )
 
-            total_amount = sum(item.sub_total() for item in cart_items)
-            discount_amount = Decimal(0)
+            with transaction.atomic():  
 
-            coupon_id = request.session.get('applied_coupon')
-            if coupon_id:
-                try:
-                    coupon = Coupon.objects.get(id=coupon_id)
-                    discount_percentage = Decimal(coupon.discount) / Decimal(100)
-                    calculated_discount = total_amount * discount_percentage
-                    discount_amount = min(calculated_discount, coupon.maximum_amount)
-                except Coupon.DoesNotExist:
-                    pass
-
-            final_amount = total_amount - discount_amount
-
-            if payment_method == 'cash_on_delivery':
-                if final_amount > 5000 :
-                    messages.error(request, "Cash on Delivery is not available for orders above ₹5000.")
-                    return redirect(f'{reverse("cart:checkout")}?cart_items={",".join(cart_item_ids)}&selected_address={selected_address_id}')
-                
-            if payment_method == 'wallet':
-                wallet = Wallet.objects.get(user=user)
-                if wallet.balance < final_amount:
-                    messages.error(request, "Insufficient wallet balance.")
-                    return redirect(f'{reverse("cart:checkout")}?cart_items={",".join(cart_item_ids)}&selected_address={selected_address_id}')
-
-
-            
-            order = OrderMain.objects.create(
-                user=user,
-                address=order_address,
-                total_amount=total_amount,
-                discount_amount=discount_amount,
-                final_amount=final_amount,
-                payment_option=payment_method,
-                order_id=generate_unique_order_id(),
-                payment_status=False,
-            )
-            
-            for item in cart_items:
-                OrderSub.objects.create(
-                    user=user,
-                    main_order=order,
-                    variant=item.variant,
-                    quantity=item.quantity,
-                    price=item.product.offer_price,
+                order_address = OrderAddress.objects.create(
+                    name=user_address.name,
+                    phone_number=user_address.phone_number,
+                    house_name=user_address.house_name,
+                    street_name=user_address.street_name,
+                    district=user_address.district,
+                    state=user_address.state,
+                    country=user_address.country,
+                    pin_number=user_address.pin_number
                 )
-                variant = item.variant
-                variant.variant_stock -= item.quantity
-                variant.save()
-                item.delete()
 
-            if 'applied_coupon' in request.session:
-                del request.session['applied_coupon']    
+                total_amount = sum(item.sub_total() for item in cart_items)
+                discount_amount = Decimal(0)
 
-            if payment_method == 'wallet':
-                wallet = Wallet.objects.get(user=user)
-                if wallet.balance < final_amount:
-                    messages.error(request, "Insufficient wallet balance.")
-                    return redirect(f'{reverse("cart:checkout")}?cart_items={",".join(cart_item_ids)}&selected_address={selected_address_id}')
+                coupon_id = request.session.get('applied_coupon')
+                if coupon_id:
+                    try:
+                        coupon = Coupon.objects.get(id=coupon_id)
+                        discount_percentage = Decimal(coupon.discount) / Decimal(100)
+                        calculated_discount = total_amount * discount_percentage
+                        discount_amount = min(calculated_discount, coupon.maximum_amount)
+                    except Coupon.DoesNotExist:
+                        pass
 
-                order.payment_status = True
-                order.order_status = 'Confirmed'
-                order.save()
+                final_amount = total_amount - discount_amount
 
-                wallet.balance -= final_amount
-                wallet.save()
-                WalletTransaction.objects.create(
-                    wallet=wallet,
-                    amount=-final_amount,
-                    description=f"Payment for order {order.order_id}",
-                    transaction_type="Debit"
-                ) 
-                return redirect('orders:order-confirmation', order_id=order.id)   
+                if payment_method == 'cash_on_delivery':
+                    if final_amount > 5000 :
+                        messages.error(request, "Cash on Delivery is not available for orders above ₹5000.")
+                        return redirect(f'{reverse("cart:checkout")}?cart_items={",".join(cart_item_ids)}&selected_address={selected_address_id}')
+                    
+                if payment_method == 'wallet':
+                    wallet = Wallet.objects.get(user=user)
+                    if wallet.balance < final_amount:
+                        messages.error(request, "Insufficient wallet balance.")
+                        return redirect(f'{reverse("cart:checkout")}?cart_items={",".join(cart_item_ids)}&selected_address={selected_address_id}')
 
-            if payment_method == 'cash_on_delivery':
-                if final_amount > 5000 :
-                    messages.error(request, "Cash on Delivery is not available for orders above ₹5000.")
-                    return redirect(f'{reverse("cart:checkout")}?cart_items={",".join(cart_item_ids)}&selected_address={selected_address_id}')
-
-                order.order_status = 'Confirmed'
-                order.save()
-                return redirect('orders:order-confirmation', order_id=order.id)
-
-            if payment_method == 'razorpay':
-                client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-                razorpay_order = client.order.create({
-                    'amount': int(final_amount * 100),  
-                    'currency': 'INR',
-                    'payment_capture': '1'
-                })
-                order.payment_id = razorpay_order['id']
-                order.save()
-                return render(request, 'user_side/order/razorpay_payment.html', {
-                    'order': order,
-                    'razorpay_order_id': razorpay_order['id'],
-                    'razorpay_merchant_key': settings.RAZORPAY_KEY_ID,
-                    'callback_url': request.build_absolute_uri(reverse('orders:razorpay-callback'))
-                })
+                # creating main order inside atomic block
+                order = OrderMain.objects.create(
+                    user=user,
+                    address=order_address,
+                    total_amount=total_amount,
+                    discount_amount=discount_amount,
+                    final_amount=final_amount,
+                    payment_option=payment_method,
+                    order_id=generate_unique_order_id(),
+                    payment_status=False,
+                )
                 
+                for item in cart_items:
+                    OrderSub.objects.create(
+                        user=user,
+                        main_order=order,
+                        variant=item.variant,
+                        quantity=item.quantity,
+                        price=item.product.offer_price,
+                    )
+                    variant = item.variant
+                    variant.variant_stock -= item.quantity
+                    variant.save()
+                    item.delete()
+
+                if 'applied_coupon' in request.session:
+                    del request.session['applied_coupon']
+
+                # wallet 
+                if payment_method == 'wallet':
+                    wallet = Wallet.objects.get(user=user)
+                    if wallet.balance < final_amount:
+                        messages.error(request, "Insufficient wallet balance.")
+                        return redirect(f'{reverse("cart:checkout")}?cart_items={",".join(cart_item_ids)}&selected_address={selected_address_id}')
+
+                    order.payment_status = True
+                    order.order_status = 'Confirmed'
+                    order.save()
+
+                    wallet.balance -= final_amount
+                    wallet.save()
+                    WalletTransaction.objects.create(
+                        wallet=wallet,
+                        amount=-final_amount,
+                        description=f"Payment for order {order.order_id}",
+                        transaction_type="Debit"
+                    )
+                    return redirect('orders:order-confirmation', order_id=order.id)
+
+                # COD 
+                if payment_method == 'cash_on_delivery':
+                    if final_amount > 5000 :
+                        messages.error(request, "Cash on Delivery is not available for orders above ₹5000.")
+                        return redirect(f'{reverse("cart:checkout")}?cart_items={",".join(cart_item_ids)}&selected_address={selected_address_id}')
+
+                    order.order_status = 'Confirmed'
+                    order.save()
+                    return redirect('orders:order-confirmation', order_id=order.id)
+
+                # razorpay 
+                if payment_method == 'razorpay':
+                    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+                    razorpay_order = client.order.create({
+                        'amount': int(final_amount * 100),  
+                        'currency': 'INR',
+                        'payment_capture': '1'
+                    })
+                    order.payment_id = razorpay_order['id']
+                    order.save()
+                    return render(request, 'user_side/order/razorpay_payment.html', {
+                        'order': order,
+                        'razorpay_order_id': razorpay_order['id'],
+                        'razorpay_merchant_key': settings.RAZORPAY_KEY_ID,
+                        'callback_url': request.build_absolute_uri(reverse('orders:razorpay-callback'))
+                    })
+
+
         except UserAddress.DoesNotExist:
             messages.error(request, "Selected address does not exist.")
             return HttpResponseRedirect(reverse('cart:checkout'))
+
         except Exception as e:
             messages.error(request, f"An error occurred: {str(e)}")
             return HttpResponseRedirect(reverse('cart:checkout'))
+
     else:
         return HttpResponseRedirect(reverse('cart:checkout'))
+    
 
 
 @csrf_exempt

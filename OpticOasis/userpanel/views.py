@@ -100,7 +100,6 @@ def user_orders_view(request):
 
     for order in orders_page:
         order.has_active_items = order.ordersub_set.filter(is_active=True).exists()
-        print(f"Order ID: {order.id}, Status: {order.order_status}, Has Active Items: {order.has_active_items}")
         for item in order.ordersub_set.all():
             item.return_status = ReturnRequest.objects.filter(order_sub=item).first()
 
